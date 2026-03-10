@@ -128,6 +128,16 @@
   </provides>
 
   <releases>
+    <release version="0.1.32" date="2026-03-10">
+      <description>
+        <ul>
+          <li>Fix - Use reply-to on replies - #64</li>
+          <li>Fixed shift + click selection regression - #67</li>
+          <li>Fixed detached composer title bar - #65</li>
+          <li>Fixed start hidden busy cursor - #66</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.1.31" date="2026-03-05">
       <description>
         <ul>

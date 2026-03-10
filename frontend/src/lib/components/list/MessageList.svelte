@@ -672,9 +672,7 @@
   }
 
   function selectConversation(threadId: string, index: number, event?: MouseEvent) {
-    lastClickedIndex = index
-
-    // Shift+click: range select
+    // Shift+click: range select (preserve anchor)
     if (event?.shiftKey) {
       const start = lastClickedIndex !== null ? Math.min(lastClickedIndex, index) : index
       const end = lastClickedIndex !== null ? Math.max(lastClickedIndex, index) : index
@@ -685,6 +683,9 @@
       checkedThreadIds = newChecked
       return
     }
+
+    // Update anchor for non-shift clicks
+    lastClickedIndex = index
 
     // Ctrl/Cmd+click: toggle single checkbox without changing selection
     if (event?.ctrlKey || event?.metaKey) {

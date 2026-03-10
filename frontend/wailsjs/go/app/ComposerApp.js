@@ -38,6 +38,10 @@ export function GetIdentities(arg1) {
   return window['go']['app']['ComposerApp']['GetIdentities'](arg1);
 }
 
+export function GetNativeTitleBar() {
+  return window['go']['app']['ComposerApp']['GetNativeTitleBar']();
+}
+
 export function GetOriginalMessage() {
   return window['go']['app']['ComposerApp']['GetOriginalMessage']();
 }
@@ -64,6 +68,10 @@ export function GetSMIMEEncryptPolicy(arg1) {
 
 export function GetSMIMESignPolicy(arg1) {
   return window['go']['app']['ComposerApp']['GetSMIMESignPolicy'](arg1);
+}
+
+export function GetShowTitleBar() {
+  return window['go']['app']['ComposerApp']['GetShowTitleBar']();
 }
 
 export function GetSystemTheme() {

@@ -546,6 +546,16 @@ func (c *ComposerApp) GetComposeMode() *ComposeMode {
 	}
 }
 
+// GetShowTitleBar returns whether the custom title bar should be shown.
+func (c *ComposerApp) GetShowTitleBar() (bool, error) {
+	return c.settingsStore.GetShowTitleBar()
+}
+
+// GetNativeTitleBar returns whether the native OS title bar is enabled.
+func (c *ComposerApp) GetNativeTitleBar() (bool, error) {
+	return c.settingsStore.GetNativeTitleBar()
+}
+
 // GetThemeMode returns the current theme mode setting.
 func (c *ComposerApp) GetThemeMode() (string, error) {
 	return c.settingsStore.GetThemeMode()

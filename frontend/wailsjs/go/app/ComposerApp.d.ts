@@ -28,6 +28,8 @@ export function GetDraft():Promise<smtp.ComposeMessage>;
 
 export function GetIdentities(arg1:string):Promise<Array<account.Identity>>;
 
+export function GetNativeTitleBar():Promise<boolean>;
+
 export function GetOriginalMessage():Promise<message.Message>;
 
 export function GetPGPEncryptPolicy(arg1:string):Promise<string>;
@@ -41,6 +43,8 @@ export function GetSMIMECertificateForEmail(arg1:string,arg2:string):Promise<smi
 export function GetSMIMEEncryptPolicy(arg1:string):Promise<string>;
 
 export function GetSMIMESignPolicy(arg1:string):Promise<string>;
+
+export function GetShowTitleBar():Promise<boolean>;
 
 export function GetSystemTheme():Promise<string>;
 

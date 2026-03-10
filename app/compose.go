@@ -625,7 +625,11 @@ func (a *App) PrepareReply(messageID, mode string) (*smtp.ComposeMessage, error)
 		selfEmails[strings.ToLower(strings.TrimSpace(id.Email))] = true
 	}
 
+	// Prefer Reply-To over From per RFC 5322
 	originalFrom := []smtp.Address{{Name: msg.FromName, Address: strings.TrimSpace(msg.FromEmail)}}
+	if msg.ReplyTo != "" {
+		originalFrom = []smtp.Address{{Address: strings.TrimSpace(msg.ReplyTo)}}
+	}
 
 	switch mode {
 	case "reply":

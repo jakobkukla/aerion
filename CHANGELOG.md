@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+**v0.1.32 - 03-10-2026**
+---
+
+- Fix - Use reply-to on replies - [#64](https://github.com/hkdb/aerion/issues/64)
+- Fixed shift + click selection regression - [#67](https://github.com/hkdb/aerion/issues/67)
+- Fixed detached composer title bar - [#65](https://github.com/hkdb/aerion/issues/65)
+- Fixed start hidden busy cursor - [#66](https://github.com/hkdb/aerion/issues/66)
+
+
 **v0.1.31 - 03-05-2026**
 ---
 
