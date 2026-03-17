@@ -19,6 +19,8 @@
     - Reload necessary messages only during sync
     - Filter unified inbox reloads to inbox folders only
 
+**Note:** Bumped GA and Flatpak node version to 22
+
 
 **v0.1.35 - 03-13-2026**
 ---

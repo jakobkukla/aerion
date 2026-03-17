@@ -39,9 +39,9 @@ if ! flatpak list | grep -q "org.freedesktop.Sdk.Extension.golang"; then
     flatpak install -y --user flathub org.freedesktop.Sdk.Extension.golang//24.08
 fi
 
-if ! flatpak list | grep -q "org.freedesktop.Sdk.Extension.node20"; then
-    echo "⚠️  Node.js 20 SDK extension not found. Installing..."
-    flatpak install -y --user flathub org.freedesktop.Sdk.Extension.node20//24.08
+if ! flatpak list | grep -q "org.freedesktop.Sdk.Extension.node22"; then
+    echo "⚠️  Node.js 22 SDK extension not found. Installing..."
+    flatpak install -y --user flathub org.freedesktop.Sdk.Extension.node22//24.08
 fi
 
 echo "✅ All runtimes installed"

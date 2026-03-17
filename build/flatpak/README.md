@@ -42,7 +42,7 @@ Install required runtimes and SDKs:
 ```bash
 flatpak install flathub org.gnome.Platform//47 org.gnome.Sdk//47
 flatpak install flathub org.freedesktop.Sdk.Extension.golang
-flatpak install flathub org.freedesktop.Sdk.Extension.node20
+flatpak install flathub org.freedesktop.Sdk.Extension.node22
 ```
 
 ## Building Locally
