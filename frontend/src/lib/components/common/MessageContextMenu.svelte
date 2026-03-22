@@ -70,16 +70,16 @@
 
   // Track dialog open/close to prevent background reloads from dismissing dialogs
   $effect(() => {
-    if (showFolderPicker) dialogGuardOpen()
-    return () => {
-      if (showFolderPicker) dialogGuardClose()
+    if (showFolderPicker) {
+      dialogGuardOpen()
+      return () => dialogGuardClose()
     }
   })
 
   $effect(() => {
-    if (showDeleteConfirm) dialogGuardOpen()
-    return () => {
-      if (showDeleteConfirm) dialogGuardClose()
+    if (showDeleteConfirm) {
+      dialogGuardOpen()
+      return () => dialogGuardClose()
     }
   })
 

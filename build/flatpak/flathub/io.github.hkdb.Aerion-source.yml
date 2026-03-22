@@ -4,7 +4,7 @@ runtime-version: '49'
 sdk: org.gnome.Sdk
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.golang
-  - org.freedesktop.Sdk.Extension.node22
+  - org.freedesktop.Sdk.Extension.node24
 command: aerion
 
 finish-args:
@@ -24,7 +24,7 @@ modules:
   - name: aerion
     buildsystem: simple
     build-options:
-      append-path: /usr/lib/sdk/golang/bin:/usr/lib/sdk/node22/bin
+      append-path: /usr/lib/sdk/golang/bin:/usr/lib/sdk/node24/bin
       env:
         GOROOT: /usr/lib/sdk/golang
         GOPATH: /run/build/aerion/go

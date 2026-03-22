@@ -157,6 +157,10 @@
     if (syncReloadTimer) clearTimeout(syncReloadTimer)
     syncReloadTimer = setTimeout(() => {
       syncReloadTimer = null
+      if (loading) {
+        pendingReload = true
+        return
+      }
       offset = 0
       loadConversations()
     }, 300)
@@ -355,8 +359,11 @@
     // For unified view, we don't need accountId/folderId
     if (!isUnifiedView && (!accountId || !folderId)) return
 
-    // Prevent concurrent loads
-    if (loading) return
+    // Prevent concurrent loads — defer instead of dropping
+    if (loading) {
+      pendingReload = true
+      return
+    }
 
     loading = true
     error = null
@@ -417,6 +424,11 @@
       error = $_('viewer.failedToLoadMessages')
     } finally {
       loading = false
+      // Flush any deferred reload (from sync event during load or dialog guard)
+      if (pendingReload && !isDialogGuardActive()) {
+        pendingReload = false
+        scheduleReload()
+      }
     }
   }
 

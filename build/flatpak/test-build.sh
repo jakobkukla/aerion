@@ -45,7 +45,7 @@ flatpak install -y --user flathub \
   org.gnome.Platform//49 \
   org.gnome.Sdk//49 \
   org.freedesktop.Sdk.Extension.golang//24.08 \
-  org.freedesktop.Sdk.Extension.node22//24.08
+  org.freedesktop.Sdk.Extension.node24//24.08
 
 echo ""
 echo "=========================================="

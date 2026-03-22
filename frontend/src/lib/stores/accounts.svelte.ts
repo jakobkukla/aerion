@@ -124,6 +124,12 @@ class AccountStore {
 
       this.syncProgress = { ...this.syncProgress }
 
+      // Clear sync error if the failed folder just synced successfully
+      if (this.syncErrors[data.accountId]?.folderId === data.folderId) {
+        delete this.syncErrors[data.accountId]
+        this.syncErrors = { ...this.syncErrors }
+      }
+
       // Always check if we should clear the syncing flag
       // This handles cases where sync completes so fast no progress was recorded
       const hasRemainingProgress = this.syncProgress[data.accountId] &&

@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+**v0.1.38 - 03-22-2026**
+---
+
+- Fixed message list refresh on IDLE sync
+- Fixed orphaned deleted messages in message list
+- Fixed orphaned sync error messages
+- Increased go test coverage
+- Bumped to Node 24 (LTS)
+- GA: skip manifest commit if test build
+
+
 **v0.1.37 - 03-18-2026**
 ---
 

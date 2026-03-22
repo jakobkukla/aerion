@@ -45,7 +45,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
 
       - name: Install Wails CLI
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
@@ -219,7 +219,7 @@ jobs:
             org.gnome.Platform//49 \
             org.gnome.Sdk//49 \
             org.freedesktop.Sdk.Extension.golang//24.08 \
-            org.freedesktop.Sdk.Extension.node22//24.08
+            org.freedesktop.Sdk.Extension.node24//24.08
 
       - name: Clean flatpak-builder cache
         run: |
@@ -242,6 +242,7 @@ jobs:
 
   commit-manifest:
     needs: build-flatpak
+    if: ${{ !contains(github.ref_name, '-build') && !contains(github.ref_name, '-test') }}
     runs-on: ubuntu-24.04
     permissions:
       contents: write

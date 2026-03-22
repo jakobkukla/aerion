@@ -69,7 +69,7 @@ Although Linux is a first-class citizen here, it should also work on:
 - Notification that brings focus to the e-mail when clicked
 - Auto-Sync when system wakes from suspend
 - Multiple color themes (More to come...)
-- PGP & S/MIME experimental support
+- PGP & S/MIME support
 - [Keyboard Shortcuts](docs/KEYBOARD_SHORTCUTS.md)
 
 ### 🚀 Installation
@@ -87,25 +87,36 @@ Although Linux is a first-class citizen here, it should also work on:
 ### ⚗️ Tech Stack
 ---
 
-This application was built with [Wails](https://wails.io) + [Svelte](https://svelte.dev/) and implemented by various versions of Claude Opus & Sonnet models with lots of prompted refactors and manual edits.
+This application was built with [Wails](https://wails.io) + [Svelte](https://svelte.dev/).
+
+Transparency Disclaimer: This project leaveraged Claude models heavily to implement.
 
 
 ### 🧑🏻‍💻 Roadmap
 ---
 
+Confirmed future features:
+
+- Search feature in `copy to` and `move to` dialog
+- Visually differentiate folders and subfolders in `copy to` and `move to` dialog
+- Auto-sync all non-core folders (Core = Inbox, Sent, Draft, Trash)
+- Selective auto-sync of non-core folders
+- Extension/Plugin system with the following shipped disabled:
+    - Calendar
+    - Contacts
+
 Potential features in the future:
 
-- Customizable shortcut keys?
+- Customizable shortcut keys
 - Advance Search
 - Explore the possibility of supporting [Age](https://github.com/FiloSottile/age) as an encryption method
-- Integrated Calendar?
 - AI Assisted Composition (Ollama)
 
 
 ### 💰 Sponsorship
 ---
 
-[3DF](https://3df.io) is sponsoring by way of dedicating the team's time to work on this. There's otherwise currently no sponsorship. If you like this project, please feel free to give us a star or buy us a coffee:
+[3DF](https://3df.io) is sponsoring by way of dedicating its cloud infrastructure resources and the team's time to work on this. There's otherwise currently no sponsorship. If you like this project, please feel free to give us a star or buy us a coffee:
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/3dfosi)
 
