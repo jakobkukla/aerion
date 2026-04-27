@@ -22,7 +22,7 @@ By participating in this project, you agree to maintain a respectful and inclusi
 
 ### Translation Pull Requests
 
-`v0.1.39` is a milestone release. As basic features are complete and all seem to be relatively stable, starting with the `v0.2.0` branch, Aerion is ready for translation contributions.
+`v0.1.39` is a milestone release. As basic features are complete and all seem to be relatively stable, starting with the `v0.2.0-dev` branch, Aerion is ready for translation contributions.
 
 Please read the [Translation Contribution Guide](docs/LANGUAGE.md) thoroughly prior to submitting any pull requests.
 
