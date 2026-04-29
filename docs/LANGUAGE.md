@@ -25,7 +25,7 @@ Check [existing translation issues](https://github.com/hkdb/aerion/issues?q=labe
 
 ## Branch Target
 
-- **Fork from and submit PRs to the latest release branch** (e.g., `v0.2.0-dev`), never `main`.
+- **Fork from and submit PRs to the latest release branch** (e.g., `v0.2.1-dev`), never `main`.
 - The `main` branch tracks the current production release and is not the target for new contributions.
 - Check the repository for the latest release branch name before starting, then fork from that branch to ensure your PR has the correct base.
 
