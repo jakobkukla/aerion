@@ -43,14 +43,14 @@
   function handleHexInput(e: Event) {
     const input = e.target as HTMLInputElement
     let hex = input.value.trim()
-    
+
     // Auto-add # if missing
     if (hex && !hex.startsWith('#')) {
       hex = '#' + hex
     }
-    
+
     hexInput = hex
-    
+
     // Validate hex color
     if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
       onchange(hex)
@@ -101,7 +101,7 @@
     >
       <!-- Preset colors grid -->
       <div class="grid grid-cols-4 gap-2 mb-3">
-        {#each presets as preset}
+        {#each presets as preset (preset)}
           <button
             type="button"
             class="w-10 h-10 rounded-md border-2 cursor-pointer hover:scale-110 transition-transform {preset === value ? 'border-primary ring-2 ring-primary/50' : 'border-transparent'}"

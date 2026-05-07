@@ -89,7 +89,7 @@
   // Reset focus when search changes
   $effect(() => {
     // Track searchQuery to re-run
-    searchQuery
+    void searchQuery
     const folders = displayFolders()
     focusedIndex = folders.length > 0 ? 0 : -1
   })

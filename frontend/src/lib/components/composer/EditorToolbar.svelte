@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte'
   import Icon from '@iconify/svelte'
   import type { Editor } from '@tiptap/core'
   import { _ } from '$lib/i18n'
@@ -54,7 +53,7 @@
   }
 
   // Close hint mode when clicking outside
-  function handleClickOutsideHints(e: MouseEvent) {
+  function handleClickOutsideHints(_e: MouseEvent) {
     if (hintMode) {
       hintMode = false
     }
@@ -230,7 +229,7 @@
 
 <svelte:window onkeydown={handleHintKeydown} onclick={handleClickOutsideHints} />
 
-<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
   bind:this={toolbarRef}
   class="flex items-center gap-1 px-4 py-2 border-b border-border relative"
@@ -335,7 +334,7 @@
     {#if showColorPicker && !isPlainTextMode}
       <div class="absolute top-full left-0 mt-1 p-2 bg-popover border border-border rounded-md shadow-lg z-50">
         <div class="grid grid-cols-4 gap-1 mb-2">
-          {#each presetColors as color}
+          {#each presetColors as color (color)}
             <button
               onclick={() => setColor(color)}
               class="w-6 h-6 rounded border border-border hover:scale-110 transition-transform"
@@ -382,7 +381,7 @@
 
     {#if showFontSizePicker && !isPlainTextMode}
       <div class="absolute top-full left-0 mt-1 py-1 bg-popover border border-border rounded-md shadow-lg z-50 min-w-[60px]">
-        {#each fontSizes as size}
+        {#each fontSizes as size (size)}
           <button
             onclick={() => setFontSize(size)}
             class="w-full px-3 py-1 text-left text-sm hover:bg-muted transition-colors"

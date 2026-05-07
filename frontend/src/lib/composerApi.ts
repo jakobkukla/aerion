@@ -1,16 +1,16 @@
 /**
  * Composer API Abstraction Layer
- * 
+ *
  * Provides a unified interface for composer operations that works in both:
  * - Main window (modal/inline composer) - uses App bindings
  * - Detached composer window - uses ComposerApp bindings
- * 
+ *
  * The API is injected via Svelte context to allow different implementations
  * depending on the window type.
  */
 
 // @ts-ignore - Wails generated imports
-import { smtp, account, contact, app, draft, smime, pgp } from '../../wailsjs/go/models'
+import { smtp, account, contact, app, smime, pgp } from '../../wailsjs/go/models'
 
 /**
  * Interface for composer API operations.
@@ -19,22 +19,22 @@ import { smtp, account, contact, app, draft, smime, pgp } from '../../wailsjs/go
 export interface ComposerApi {
   /** Send a composed email */
   sendMessage: (accountId: string, message: smtp.ComposeMessage) => Promise<void>
-  
+
   /** Search contacts for autocomplete */
   searchContacts: (query: string, limit: number) => Promise<contact.Contact[]>
-  
+
   /** Get identities for an account */
   getIdentities: (accountId: string) => Promise<account.Identity[]>
-  
+
   /** Save a draft (creates new or updates existing if draftId provided) */
   saveDraft: (accountId: string, message: smtp.ComposeMessage, draftId: string) => Promise<{ id: string; syncStatus: string }>
 
   /** Delete a draft */
   deleteDraft: (draftId: string) => Promise<void>
-  
+
   /** Pick attachment files via native file picker */
   pickAttachmentFiles: () => Promise<app.ComposerAttachment[]>
-  
+
   /** Get account details */
   getAccount: (accountId: string) => Promise<account.Account>
 
@@ -126,17 +126,17 @@ export function createMainWindowApi(): ComposerApi {
       const { SendMessage } = await import('../../wailsjs/go/app/App.js')
       return SendMessage(accountId, message)
     },
-    
+
     searchContacts: async (query: string, limit: number) => {
       const { SearchContacts } = await import('../../wailsjs/go/app/App.js')
       return SearchContacts(query, limit) || []
     },
-    
+
     getIdentities: async (accountId: string) => {
       const { GetIdentities } = await import('../../wailsjs/go/app/App.js')
       return GetIdentities(accountId)
     },
-    
+
     saveDraft: async (accountId: string, message: smtp.ComposeMessage, draftId: string) => {
       const { SaveDraft } = await import('../../wailsjs/go/app/App.js')
       const result = await SaveDraft(accountId, message, draftId)
@@ -147,12 +147,12 @@ export function createMainWindowApi(): ComposerApi {
       const { DeleteDraft } = await import('../../wailsjs/go/app/App.js')
       return DeleteDraft(draftId)
     },
-    
+
     pickAttachmentFiles: async () => {
       const { PickAttachmentFiles } = await import('../../wailsjs/go/app/App.js')
       return PickAttachmentFiles()
     },
-    
+
     getAccount: async (accountId: string) => {
       const { GetAccount } = await import('../../wailsjs/go/app/App.js')
       return GetAccount(accountId)
@@ -269,7 +269,7 @@ export function createMainWindowApi(): ComposerApi {
  * Creates the composer API implementation for the detached composer window.
  * Uses ComposerApp bindings.
  */
-export function createComposerWindowApi(accountId: string): ComposerApi {
+export function createComposerWindowApi(_accountId: string): ComposerApi {
   return {
     sendMessage: async (accountId: string, message: smtp.ComposeMessage) => {
       const { SendMessage } = await import('../../wailsjs/go/app/ComposerApp.js')

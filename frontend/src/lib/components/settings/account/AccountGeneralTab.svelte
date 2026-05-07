@@ -42,7 +42,7 @@
   }
 
   let {
-    editAccount,
+    editAccount: _editAccount,
     name = $bindable(),
     displayName = $bindable(),
     color = $bindable(),
@@ -65,7 +65,8 @@
 
   function getSyncPeriodLabel(value: string): string {
     const numValue = Number(value)
-    return syncPeriodOptions.find(opt => opt.value === numValue)?.label || `${value} days`
+    const option = syncPeriodOptions.find(opt => opt.value === numValue)
+    return option ? $_(option.labelKey) : `${value} days`
   }
 </script>
 
@@ -236,8 +237,8 @@
 
     <div class="space-y-2">
       <Label>{$_('account.syncPeriod')}</Label>
-      <Select.Root 
-        value={syncPeriodDays} 
+      <Select.Root
+        value={syncPeriodDays}
         onValueChange={(v) => { syncPeriodDays = v; onSyncPeriodChange(v) }}
       >
         <Select.Trigger>
@@ -247,7 +248,7 @@
         </Select.Trigger>
         <Select.Content>
           {#each syncPeriodOptions as opt (opt.value)}
-            <Select.Item value={String(opt.value)} label={opt.label} />
+            <Select.Item value={String(opt.value)} label={$_(opt.labelKey)} />
           {/each}
         </Select.Content>
       </Select.Root>

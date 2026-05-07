@@ -52,7 +52,7 @@
     const currentIndex = buttons.findIndex(b => b === document.activeElement)
     if (currentIndex === -1) return
 
-    let newIndex = currentIndex
+    let newIndex: number
 
     if (e.key === 'ArrowLeft' || e.key === 'h') {
       e.preventDefault()

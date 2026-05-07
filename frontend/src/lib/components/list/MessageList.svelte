@@ -41,7 +41,7 @@
     onConversationSelect,
     onReply,
     onRowActionComplete,
-    isFocused = false,
+    isFocused: _isFocused = false,
     isFlashing = false,
     showFolderToggle = false,
     onToggleSidebar,
@@ -62,8 +62,8 @@
 
   // Derived: get sync progress for this folder (if syncing)
   const syncProgress = $derived(
-    accountId && folderId 
-      ? accountStore.syncProgress[accountId]?.[folderId] 
+    accountId && folderId
+      ? accountStore.syncProgress[accountId]?.[folderId]
       : null
   )
 
@@ -375,13 +375,13 @@
     try {
       const [convList, count] = isUnifiedView
         ? await Promise.all([
-            GetUnifiedInboxConversations(currentOffset, limit, getMessageListSortOrder(), filterMode),
-            GetUnifiedInboxCount(filterMode),
-          ])
+          GetUnifiedInboxConversations(currentOffset, limit, getMessageListSortOrder(), filterMode),
+          GetUnifiedInboxCount(filterMode),
+        ])
         : await Promise.all([
-            GetConversations(accountId!, folderId!, currentOffset, limit, getMessageListSortOrder(), filterMode),
-            GetConversationCount(accountId!, folderId!, filterMode),
-          ])
+          GetConversations(accountId!, folderId!, currentOffset, limit, getMessageListSortOrder(), filterMode),
+          GetConversationCount(accountId!, folderId!, filterMode),
+        ])
 
       if (currentOffset !== 0) {
         conversations = [...conversations, ...(convList || [])]
@@ -808,7 +808,8 @@
 
     lastClickedIndex = index
     const newChecked = new Set(checkedThreadIds)
-    isChecked ? newChecked.add(threadId) : newChecked.delete(threadId)
+    if (isChecked) newChecked.add(threadId)
+    if (!isChecked) newChecked.delete(threadId)
     checkedThreadIds = newChecked
   }
 
@@ -1225,7 +1226,7 @@
   // Scroll to a specific index in the list
   function scrollToIndex(index: number) {
     if (!listContainerRef) return
-    
+
     const rows = listContainerRef.querySelectorAll('[data-conversation-row]')
     const row = rows[index] as HTMLElement | undefined
     if (row) {
@@ -1378,7 +1379,7 @@
               'data-[side=bottom]:slide-in-from-top-2'
             )}
           >
-            {#each filterOptions as opt}
+            {#each filterOptions as opt (opt.value ?? opt.label)}
               {#if opt.separator}
                 <DropdownMenu.Separator class="-mx-1 my-1 h-px bg-border" />
               {/if}
@@ -1443,8 +1444,8 @@
         <span>{$_('messageList.ftsBuilding', { values: { percentage: indexProgress } })}</span>
       </div>
       <div class="h-1 bg-muted rounded-full mt-1.5 overflow-hidden">
-        <div 
-          class="h-full bg-primary transition-all duration-300" 
+        <div
+          class="h-full bg-primary transition-all duration-300"
           style="width: {indexProgress}%"
         ></div>
       </div>

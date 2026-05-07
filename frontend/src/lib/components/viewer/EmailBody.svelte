@@ -21,7 +21,7 @@
     encryptedInlineAttachments?: Record<string, string>
   }
 
-  let { messageId, accountId, bodyHtml = '', bodyText = '', fromEmail = '', onCompose, onImagesLoaded, encryptedInlineAttachments }: Props = $props()
+  let { messageId, accountId: _accountId, bodyHtml = '', bodyText = '', fromEmail = '', onCompose, onImagesLoaded, encryptedInlineAttachments }: Props = $props()
 
   // State for remote image handling
   let imagesBlocked = $state(true)
@@ -44,10 +44,9 @@
   let ctxMenuUrl = $state('')
   let ctxMenuX = $state(0)
   let ctxMenuY = $state(0)
-  
+
   // Derived state
   let hasRemoteImages = $derived(checkForRemoteImages(bodyHtml))
-  let hasCidReferences = $derived(bodyHtml ? /src=["']cid:([^"']+)["']/i.test(bodyHtml) : false)
 
   // Loading placeholder SVG
   const loadingPlaceholder = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='80' viewBox='0 0 120 80'%3E%3Crect fill='%23f3f4f6' width='120' height='80' rx='4'/%3E%3Cg transform='translate(60,40)'%3E%3Ccircle cx='0' cy='0' r='12' fill='none' stroke='%239ca3af' stroke-width='2' stroke-dasharray='20 10'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0' to='360' dur='1s' repeatCount='indefinite'/%3E%3C/circle%3E%3C/g%3E%3Ctext x='60' y='65' text-anchor='middle' fill='%239ca3af' font-size='9' font-family='sans-serif'%3ELoading...%3C/text%3E%3C/svg%3E`
@@ -103,8 +102,8 @@
 
   function buildIframeContent(html: string): string {
     const processedHtml = processHtml(html, imagesBlocked)
-    const imgSrc = imagesBlocked ? "'self' data:" : "* data:"
-    
+    const imgSrc = imagesBlocked ? "'self' data:" : '* data:'
+
     const iframeScript = `
       function sendHeight() {
         var height = document.body.scrollHeight;
@@ -254,7 +253,7 @@
         }
       }, true);
     `
-    
+
     return `<!DOCTYPE html>
 <html>
 <head>
@@ -450,7 +449,7 @@ ${processedHtml}
   // Check allowlist and reset state on message change (single effect to avoid race conditions)
   // Uses synchronous frontend cache instead of async Wails call to avoid bridge saturation.
   $effect(() => {
-    const id = messageId
+    void messageId // dependency only
     const email = fromEmail
     const hasImages = hasRemoteImages
 
@@ -512,7 +511,7 @@ ${processedHtml}
   // Build iframe content
   $effect(() => {
     const html = bodyHtml
-    const blocked = imagesBlocked
+    void imagesBlocked // dependency only
 
     if (iframeElement && html) {
       const content = buildIframeContent(html)
@@ -568,7 +567,7 @@ ${processedHtml}
 
   function linkifyText(text: string): string {
     if (!text) return ''
-    const urlPattern = /(https?:\/\/[^\s<>"{}|\\^`\[\]]+)/g
+    const urlPattern = /(https?:\/\/[^\s<>"{}|\\^`[\]]+)/g
     const emailPattern = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g
     let escaped = text
       .replace(/&/g, '&amp;')
@@ -667,6 +666,7 @@ ${processedHtml}
         handleLinkClick(link.href)
       }}
     >
+      <!-- eslint-disable-next-line svelte/no-at-html-tags -- linkifyText escapes user content; only injects safe <a> tags around URLs -->
       {@html linkifyText(bodyText)}
     </div>
   {:else}

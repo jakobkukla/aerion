@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { Tabs as TabsPrimitive } from "bits-ui";
-  import { cn } from "$lib/utils";
-  import type { Snippet } from "svelte";
+  import { Tabs as TabsPrimitive } from 'bits-ui'
+  import { cn } from '$lib/utils'
+  import type { Snippet } from 'svelte'
 
   interface Props {
     value?: string;
@@ -16,13 +16,13 @@
     class: className,
     children,
     ...restProps
-  }: Props = $props();
+  }: Props = $props()
 </script>
 
 <TabsPrimitive.Root
   bind:value
   onValueChange={onValueChange}
-  class={cn("w-full", className)}
+  class={cn('w-full', className)}
   {...restProps}
 >
   {@render children?.()}

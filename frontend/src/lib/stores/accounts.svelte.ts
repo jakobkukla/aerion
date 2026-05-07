@@ -1,7 +1,6 @@
 import {
   GetAccounts,
   GetFolderTree,
-  SyncFolders,
   SyncAccountComplete,
   SyncAllComplete,
   CancelAllSyncs,
@@ -66,8 +65,8 @@ class AccountStore {
       for (const acc of this.accounts) {
         this.updateFolderCountsInTree(acc.folders, folderCounts)
       }
-      // Trigger reactivity by reassigning
-      this.accounts = this.accounts
+      // Trigger reactivity by reassigning the array reference
+      this.accounts = [...this.accounts]
     })
 
     // Listen for sync progress updates
@@ -151,7 +150,7 @@ class AccountStore {
     // Listen for sync errors
     EventsOn('folder:syncError', (data: { accountId: string; folderId: string; error: string }) => {
       console.error('[AccountStore] Sync error:', data)
-      
+
       // Clear any progress for this account/folder
       if (this.syncProgress[data.accountId]?.[data.folderId]) {
         delete this.syncProgress[data.accountId][data.folderId]
@@ -504,12 +503,12 @@ class AccountStore {
   getSyncProgress(accountId: string): SyncProgress | null {
     const accountProgress = this.syncProgress[accountId]
     if (!accountProgress) return null
-    
+
     const folders = Object.values(accountProgress)
     if (folders.length === 0) return null
-    
+
     // Return the folder with the LOWEST percentage (most behind)
-    return folders.reduce((lowest, current) => 
+    return folders.reduce((lowest, current) =>
       current.percentage < lowest.percentage ? current : lowest
     )
   }

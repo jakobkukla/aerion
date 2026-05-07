@@ -47,7 +47,7 @@
     collapsedFolders = {},
     onToggleFolderCollapse,
   }: Props = $props()
-  
+
   let showMenu = $state(false)
 
   // Toggle expand/collapse via callback
@@ -122,7 +122,7 @@
 
     <!-- Dropdown Menu -->
     {#if showMenu}
-      <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
       <div
         class="absolute right-2 top-full mt-1 z-50 min-w-[160px] bg-popover border border-border rounded-md shadow-md py-1"
         role="menu"
@@ -166,8 +166,8 @@
   {:else if syncing && syncProgress}
     <div class="px-3 py-1.5">
       <div class="h-1 bg-muted rounded-full overflow-hidden">
-        <div 
-          class="h-full bg-primary transition-all duration-300 ease-out" 
+        <div
+          class="h-full bg-primary transition-all duration-300 ease-out"
           style="width: {syncProgress.percentage}%"
         ></div>
       </div>

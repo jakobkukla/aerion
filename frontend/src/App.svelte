@@ -2,7 +2,7 @@
   // Load offline icon data before anything else
   import './lib/iconify-offline'
 
-  import { onMount } from 'svelte'
+  import { onMount, untrack } from 'svelte'
   import TitleBar from './lib/components/common/TitleBar.svelte'
   import Sidebar from './lib/components/sidebar/Sidebar.svelte'
   import MessageList from './lib/components/list/MessageList.svelte'
@@ -55,18 +55,69 @@
   let selectedFolderType = $state<string | null>(null)
   // Track where the selection came from: 'unified' for unified section, 'account' for account tree
   let selectionSource = $state<'unified' | 'account' | null>(null)
-  
+
   // Selected conversation state
   let selectedThreadId = $state<string | null>(null)
   let selectedConversationFolderId = $state<string | null>(null)
   let selectedConversationAccountId = $state<string | null>(null)
-  
+
   // Composer state
   let showComposer = $state(false)
   let composerAccountId = $state<string | null>(null)
   let composerInitialMessage = $state<smtp.ComposeMessage | null>(null)
   let composerDraftId = $state<string | null>(null)
   let composerImagesLoaded = $state(false)
+
+  // Focus mode state — viewer (or single message) takes the whole window.
+  // Always resets on conversation change, on Esc, on back-arrow, and on app reload.
+  let focusMode = $state<'off' | 'thread' | 'message'>('off')
+  let focusedMessageIdInFocus = $state<string | null>(null)
+  const viewerIsOverlay = $derived(isResponsive() || focusMode !== 'off')
+  const viewerIsVisible = $derived(getResponsiveView() === 'viewer' || focusMode !== 'off')
+
+  function toggleThreadFocus() {
+    if (focusMode === 'thread') {
+      focusMode = 'off'
+      focusedMessageIdInFocus = null
+      return
+    }
+    focusMode = 'thread'
+    focusedMessageIdInFocus = null
+  }
+
+  function toggleMessageFocus(messageId: string) {
+    if (focusMode === 'message' && focusedMessageIdInFocus === messageId) {
+      focusMode = 'off'
+      focusedMessageIdInFocus = null
+      return
+    }
+    focusMode = 'message'
+    focusedMessageIdInFocus = messageId
+  }
+
+  // Auto-reset focus mode when the conversation changes (or is closed).
+  // Prevents focus state from leaking across navigation.
+  $effect(() => {
+    void selectedThreadId
+    focusMode = 'off'
+    focusedMessageIdInFocus = null
+  })
+
+  // Route keyboard pane focus to the viewer while in focus mode so j/k/arrow
+  // shortcuts scroll the viewer, then restore the prior pane on exit.
+  let focusedPaneBeforeFocusMode: FocusablePane | null = null
+  $effect(() => {
+    const mode = focusMode
+    if (mode !== 'off' && focusedPaneBeforeFocusMode === null) {
+      focusedPaneBeforeFocusMode = untrack(() => getFocusedPane())
+      setFocusedPane('viewer')
+      return
+    }
+    if (mode === 'off' && focusedPaneBeforeFocusMode !== null) {
+      setFocusedPane(focusedPaneBeforeFocusMode)
+      focusedPaneBeforeFocusMode = null
+    }
+  })
 
   // Shutdown state
   let isShuttingDown = $state(false)
@@ -255,11 +306,11 @@
 
     // Load persisted UI state
     const uiState = await loadUIState()
-    
+
     // Restore pane widths (already validated/clamped by loadUIState)
     sidebarWidth = uiState.sidebarWidth
     listWidth = uiState.listWidth
-    
+
     // Restore folder selection if valid
     if (uiState.selectedAccountId && uiState.selectedFolderId) {
       // Validate account still exists (unless unified inbox)
@@ -267,13 +318,13 @@
       const accountExists = isUnified || accountStore.accounts.some(
         a => a.account.id === uiState.selectedAccountId
       )
-      
+
       if (accountExists) {
         selectedAccountId = uiState.selectedAccountId
         selectedFolderId = uiState.selectedFolderId
         selectedFolderName = uiState.selectedFolderName || 'Inbox'
         selectedFolderType = uiState.selectedFolderType
-        
+
         // Restore conversation selection
         if (uiState.selectedThreadId) {
           selectedThreadId = uiState.selectedThreadId
@@ -418,7 +469,7 @@
       selectedConversationFolderId: folderId,
     })
   }
-  
+
   // Resolve an account ID that may be 'unified' to a real account ID.
   // Returns the first real account ID if the input is 'unified' or falsy.
   function resolveAccountId(id: string | null): string | undefined {
@@ -532,12 +583,18 @@
     })
     showComposer = true
   }
-  
+
   // Handle reply/reply-all/forward - calls backend API
   async function handleReply(mode: 'reply' | 'reply-all' | 'forward', messageId: string, imagesLoaded?: boolean) {
     // Use conversation's account ID (important for unified inbox), fall back to selected account or first account
     const accountId = resolveAccountId(selectedConversationAccountId) || resolveAccountId(selectedAccountId)
     if (!accountId) return
+
+    // Force detached composer when in focus mode — preserves the focused view
+    if (focusMode !== 'off') {
+      OpenComposerWindow(accountId, mode, messageId, '', '')
+      return
+    }
 
     try {
       // Call backend to prepare the reply message (backend gets account from message)
@@ -560,7 +617,7 @@
       showComposer = true
     }
   }
-  
+
   // Close composer
   function closeComposer() {
     showComposer = false
@@ -641,7 +698,7 @@
     const inInput = isInputElement(e.target)
     const focusedPane = getFocusedPane()
     const hasConversation = selectedThreadId !== null
-    
+
     // Don't intercept keyboard events when a context menu or dropdown is open
     // (bits-ui portals mount [role="menu"] only while open)
     if (document.querySelector('[role="menu"]')) return
@@ -819,6 +876,8 @@
 
     // Handle Alt shortcuts (pane/folder navigation, always work)
     if (e.altKey) {
+      // Pane navigation is meaningless in focus mode (other panes hidden)
+      if (focusMode !== 'off') return
       switch (e.key) {
         case 'ArrowLeft':
         case 'h':
@@ -882,8 +941,13 @@
     if (inInput) return
 
     // Handle Escape (context-dependent, progressive)
-    // Responsive overlays first, then checkboxes, then conversation
+    // Focus mode first, then responsive overlays, then checkboxes, then conversation
     if (e.key === 'Escape') {
+      if (focusMode !== 'off') {
+        focusMode = 'off'
+        focusedMessageIdInFocus = null
+        return
+      }
       if (isResponsive() && getResponsiveView() === 'viewer') {
         hideViewer()
         return
@@ -999,6 +1063,30 @@
           }
         }
         return
+      case 'f':
+        // Toggle thread focus mode (only with a conversation open)
+        if (!hasConversation) return
+        e.preventDefault()
+        toggleThreadFocus()
+        return
+      case 'F': {
+        // Shift+F: toggle message focus on the currently Tab-focused message
+        // (falls back to last message if none focused)
+        if (!hasConversation) return
+        e.preventDefault()
+        if (focusMode === 'message') {
+          focusMode = 'off'
+          focusedMessageIdInFocus = null
+          return
+        }
+        const targetId = (focusedPane === 'viewer' && viewerRef?.hasFocusedMessage())
+          ? viewerRef.getFocusedMessageId()
+          : getLastMessageId()
+        if (!targetId) return
+        focusMode = 'message'
+        focusedMessageIdInFocus = targetId
+        return
+      }
       case 'Backspace':
       case 'Delete': {
         if (focusedPane === 'viewer' && viewerRef?.hasFocusedMessage()) {
@@ -1218,7 +1306,7 @@
 
     <!-- Conversation Viewer -->
     <main
-      class="{isResponsive() ? `responsive-viewer-overlay bg-background ${getResponsiveView() === 'viewer' ? 'responsive-viewer-visible' : ''}` : 'flex-1 min-w-0 bg-background'}"
+      class="{viewerIsOverlay ? `responsive-viewer-overlay bg-background ${viewerIsVisible ? 'responsive-viewer-visible' : ''}` : 'flex-1 min-w-0 bg-background'}"
       role="presentation"
       data-pane="viewer"
       onclick={() => handlePaneClick('viewer')}
@@ -1236,7 +1324,12 @@
         isFocused={getFocusedPane() === 'viewer'}
         isFlashing={isPaneFlashing('viewer')}
         showBackButton={isResponsive()}
-        onBack={hideViewer}
+        onBack={() => { focusMode = 'off'; focusedMessageIdInFocus = null; hideViewer() }}
+        inFocusMode={focusMode !== 'off'}
+        focusModeKind={focusMode === 'off' ? null : focusMode}
+        focusedMessageIdInFocus={focusedMessageIdInFocus}
+        onToggleThreadFocus={toggleThreadFocus}
+        onToggleMessageFocus={toggleMessageFocus}
       />
     </main>
   </div>

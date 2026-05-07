@@ -192,13 +192,13 @@
   function getSignaturePreview(identity: account.Identity): string {
     if (!identity.signatureEnabled) return $_('identity.noSignature')
     if (!identity.signatureHtml) return $_('identity.noSignature')
-    
+
     // Strip HTML and get first line
     const temp = document.createElement('div')
     temp.innerHTML = identity.signatureHtml
     const text = temp.textContent || ''
     const firstLine = text.split('\n')[0].trim()
-    
+
     if (firstLine.length > 50) {
       return firstLine.substring(0, 50) + '...'
     }
@@ -241,8 +241,8 @@
             type="button"
             onclick={() => handleSetDefault(identity)}
             class="flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors
-              {identity.isDefault 
-                ? 'border-primary bg-primary' 
+              {identity.isDefault
+                ? 'border-primary bg-primary'
                 : 'border-muted-foreground hover:border-primary'}"
             title={identity.isDefault ? $_('identity.defaultAddress') : $_('identity.setAsDefaultAddress')}
           >

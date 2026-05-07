@@ -1,10 +1,10 @@
 /**
  * In-memory cache for inline attachments within a session.
- * 
+ *
  * This cache avoids redundant API calls when switching between messages.
  * The backend already stores inline attachment content in SQLite for offline access,
  * but this frontend cache prevents unnecessary round-trips when revisiting messages.
- * 
+ *
  * Cache is unlimited (no eviction) - grows throughout the session.
  * Memory is released when the app is closed/refreshed.
  */

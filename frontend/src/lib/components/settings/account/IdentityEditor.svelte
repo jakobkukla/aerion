@@ -25,7 +25,7 @@
   let {
     open = $bindable(false),
     identity = null,
-    accountId,
+    accountId: _accountId,
     onClose,
     onSave,
   }: Props = $props()
@@ -79,23 +79,23 @@
 
   function validate(): boolean {
     errors = {}
-    
+
     if (!email.trim()) {
       errors.email = $_('identity.emailRequired')
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       errors.email = $_('identity.invalidEmailFormat')
     }
-    
+
     if (!name.trim()) {
       errors.name = $_('identity.displayNameRequired')
     }
-    
+
     return Object.keys(errors).length === 0
   }
 
   async function handleSave() {
     if (!validate()) return
-    
+
     saving = true
     try {
       const config = new account.IdentityConfig({
@@ -110,7 +110,7 @@
         signaturePlacement,
         signatureSeparator,
       })
-      
+
       await onSave?.(config)
       open = false
       onClose?.()
@@ -137,10 +137,10 @@
   // Convert HTML to plain text for the "Generate from HTML" button
   function generatePlainTextFromHtml() {
     if (!signatureHtml) return
-    
+
     const temp = document.createElement('div')
     temp.innerHTML = signatureHtml
-    
+
     // Replace <br> and block elements with newlines
     const blockElements = temp.querySelectorAll('p, div, br, li')
     blockElements.forEach(el => {
@@ -153,7 +153,7 @@
         el.append(document.createTextNode('\n'))
       }
     })
-    
+
     let text = temp.textContent || ''
     text = text.replace(/\n{3,}/g, '\n\n')
     signatureText = text.trim()

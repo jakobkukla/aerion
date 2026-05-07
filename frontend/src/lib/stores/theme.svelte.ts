@@ -12,12 +12,8 @@ export type { ThemeMode }
 let portalThemeAvailable = false
 let portalTheme: 'light' | 'dark' = 'light'
 
-// The resolved theme currently applied to the document
-let theme: ThemeMode = 'light'
-
 /** Apply a resolved theme to the document element. */
 export function applyTheme(themeName: ThemeMode) {
-  theme = themeName
   document.documentElement.setAttribute('data-theme', themeName)
 
   // Legacy: Also set .dark class for backwards compat

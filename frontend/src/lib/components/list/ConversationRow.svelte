@@ -8,7 +8,7 @@
   import { Star, Unstar } from '../../../../wailsjs/go/app/App'
   import MessageContextMenu from '$lib/components/common/MessageContextMenu.svelte'
   import { toasts } from '$lib/stores/toast'
-  import { getAccentBarUnread } from '$lib/stores/settings.svelte'
+  import { getAccentBarUnread, getShowMessageListCircles } from '$lib/stores/settings.svelte'
 
   interface Props {
     conversation: message.Conversation
@@ -55,7 +55,7 @@
     highlightedSnippet = '',
     highlightedFromName = '',
     searchFolderName = '',
-    searchFolderType = '',
+    searchFolderType: _searchFolderType = '',
     isNonLocal = false,
     onSelect,
     onCheck,
@@ -292,14 +292,16 @@
       </button>
     </div>
 
-    <!-- Avatar -->
-    <div
-      class="{densityClasses.avatar[density]} rounded-full flex-shrink-0 flex items-center justify-center text-white font-medium {getAvatarColor(
-        conversation
-      )}"
-    >
-      {getInitials(conversation)}
-    </div>
+    <!-- Sender circle (colored, with initials) -->
+    {#if getShowMessageListCircles()}
+      <div
+        class="{densityClasses.avatar[density]} rounded-full flex-shrink-0 flex items-center justify-center text-white font-medium {getAvatarColor(
+          conversation
+        )}"
+      >
+        {getInitials(conversation)}
+      </div>
+    {/if}
 
     <!-- Content -->
     <div class="flex-1 min-w-0">
@@ -316,6 +318,7 @@
         <!-- Participant Names (with highlighting if in search mode) -->
         {#if highlightedFromName}
           <span class="{densityClasses.senderText[density]} truncate {hasUnread ? 'font-semibold text-foreground' : 'text-foreground'}">
+            <!-- eslint-disable-next-line svelte/no-at-html-tags -- highlightMatches only inserts <mark> around already-escaped text -->
             {@html highlightedFromName}
           </span>
         {:else}
@@ -367,6 +370,7 @@
         <p
           class="truncate {densityClasses.text[density]} {hasUnread ? 'font-medium text-foreground' : 'text-muted-foreground'}"
         >
+          <!-- eslint-disable-next-line svelte/no-at-html-tags -- highlightMatches only inserts <mark> around already-escaped text -->
           {@html highlightedSubject}
         </p>
       {:else}
@@ -380,6 +384,7 @@
       <!-- Snippet (with highlighting if in search mode) -->
       {#if highlightedSnippet}
         <p class="truncate {densityClasses.text[density]} text-muted-foreground">
+          <!-- eslint-disable-next-line svelte/no-at-html-tags -- highlightMatches only inserts <mark> around already-escaped text -->
           {@html highlightedSnippet}
         </p>
       {:else if conversation.snippet}

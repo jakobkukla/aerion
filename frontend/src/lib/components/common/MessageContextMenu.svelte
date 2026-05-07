@@ -83,22 +83,6 @@
     }
   })
 
-  // Folder type to icon mapping
-  const folderIcons: Record<string, string> = {
-    inbox: 'mdi:inbox',
-    sent: 'mdi:send',
-    drafts: 'mdi:file-document-edit-outline',
-    trash: 'mdi:delete-outline',
-    archive: 'mdi:archive-outline',
-    spam: 'mdi:alert-octagon-outline',
-    all: 'mdi:email-multiple-outline',
-    folder: 'mdi:folder-outline',
-  }
-
-  function getFolderIcon(type: string): string {
-    return folderIcons[type] || folderIcons.folder
-  }
-
   // Computed values
   const isTrashFolder = $derived(folderType === 'trash')
   const isSpamFolder = $derived(folderType === 'spam')
@@ -346,7 +330,7 @@
       {$_(isTrashFolder ? 'contextMenu.deletePermanently' : 'contextMenu.delete')}
     </ContextMenuItem>
     <ContextMenuItem onSelect={handleSpam}>
-      <Icon icon={isSpamFolder ? "mdi:email-check-outline" : "mdi:alert-octagon-outline"} class="mr-2 h-4 w-4" />
+      <Icon icon={isSpamFolder ? 'mdi:email-check-outline' : 'mdi:alert-octagon-outline'} class="mr-2 h-4 w-4" />
       {$_(isSpamFolder ? 'contextMenu.markAsNotSpam' : 'contextMenu.markAsSpam')}
     </ContextMenuItem>
 

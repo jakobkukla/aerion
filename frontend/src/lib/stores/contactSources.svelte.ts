@@ -19,13 +19,6 @@ import type { carddav, app } from '../../../wailsjs/go/models'
 // Re-export LinkedAccountInfo type for components
 export type LinkedAccountInfo = app.LinkedAccountInfo
 
-interface ContactSourcesState {
-  sources: carddav.Source[]
-  errors: carddav.SourceError[]
-  loading: boolean
-  hasErrors: boolean
-}
-
 function createContactSourcesStore() {
   let sources = $state<carddav.Source[]>([])
   let errors = $state<carddav.SourceError[]>([])

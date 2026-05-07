@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { Select as SelectPrimitive } from "bits-ui";
-  import type { Snippet } from "svelte";
+  import { Select as SelectPrimitive } from 'bits-ui'
+  import type { Snippet } from 'svelte'
 
   interface Props {
     value?: string;
@@ -20,13 +20,13 @@
     disabled,
     name,
     children,
-  }: Props = $props();
+  }: Props = $props()
 </script>
 
-<SelectPrimitive.Root 
+<SelectPrimitive.Root
   type="single"
-  bind:value 
-  bind:open 
+  bind:value
+  bind:open
   {onValueChange}
   {onOpenChange}
   {disabled}

@@ -6,7 +6,7 @@
   // @ts-ignore - wailsjs bindings
   import { MarkAsRead, MarkAsUnread, Star, Unstar, Archive, Trash, MarkAsSpam, MarkAsNotSpam, DeletePermanently, Undo } from '../../../../wailsjs/go/app/App'
   // @ts-ignore - wailsjs path
-  import { EventsOn, EventsOff } from '../../../../wailsjs/runtime/runtime'
+  import { EventsOn } from '../../../../wailsjs/runtime/runtime'
   // @ts-ignore - wailsjs path
   import { message as messageModels } from '../../../../wailsjs/go/models'
   import AttachmentList from './AttachmentList.svelte'
@@ -17,6 +17,7 @@
   import MessageContextMenu from '$lib/components/common/MessageContextMenu.svelte'
   import { _ } from '$lib/i18n'
   import { isDialogGuardActive } from '$lib/stores/dialogGuard'
+  import { getShowViewerCircles } from '$lib/stores/settings.svelte'
 
   interface Props {
     threadId?: string | null
@@ -31,6 +32,12 @@
     isFlashing?: boolean
     showBackButton?: boolean
     onBack?: () => void
+    // Focus mode (whole thread or single message takes full window)
+    inFocusMode?: boolean
+    focusModeKind?: 'thread' | 'message' | null
+    focusedMessageIdInFocus?: string | null
+    onToggleThreadFocus?: () => void
+    onToggleMessageFocus?: (messageId: string) => void
   }
 
   let {
@@ -46,6 +53,11 @@
     isFlashing = false,
     showBackButton = false,
     onBack,
+    inFocusMode = false,
+    focusModeKind = null,
+    focusedMessageIdInFocus = null,
+    onToggleThreadFocus,
+    onToggleMessageFocus,
   }: Props = $props()
 
   // Track which messages have had their remote images loaded by the user
@@ -102,12 +114,12 @@
 
   // Track focused message for keyboard deletion
   let focusedMessageId = $state<string | null>(null)
-  
+
   // Read receipt policy and tracking
   let readReceiptPolicy = $state<'never' | 'ask' | 'always'>('ask')
   let handledReadReceipts = $state<Set<string>>(new Set()) // Track locally handled receipts
   let sendingReadReceipt = $state<Set<string>>(new Set()) // Track in-flight sends
-  
+
   // Delete confirmation state
   let showDeleteConfirm = $state(false)
 
@@ -264,35 +276,35 @@
       // Only handle if viewer pane is focused
       if (!isFocused) return
 
-      // Handle Tab for message navigation
+      // Handle Tab for message navigation. preventDefault is called only when
+      // we actually navigate, so at the first/last boundary native Tab passes
+      // through and the user can leave the viewer normally.
       if (e.key === 'Tab' && conversation?.messages) {
-        e.preventDefault()
-
         const messageIds = conversation.messages.map(m => m.id)
         const currentIndex = focusedMessageId ? messageIds.indexOf(focusedMessageId) : -1
 
         if (e.shiftKey) {
-          // Shift+Tab - navigate backward
           if (currentIndex > 0) {
+            e.preventDefault()
             focusedMessageId = messageIds[currentIndex - 1]
-            // Focus the message element
-            ;(document.querySelector(`[data-message-id="${focusedMessageId}"]`) as HTMLElement)?.focus()
-          } else {
-            // At first message, clear focus to let Tab navigate out
-            focusedMessageId = null
-          }
-        } else {
-          // Tab - navigate forward
-          if (currentIndex < messageIds.length - 1) {
-            focusedMessageId = messageIds[currentIndex + 1]
-            // Focus the message element
-            ;(document.querySelector(`[data-message-id="${focusedMessageId}"]`) as HTMLElement)?.focus()
-          } else if (currentIndex === -1 && messageIds.length > 0) {
-            // No message focused yet, focus first message
-            focusedMessageId = messageIds[0]
             ;(document.querySelector(`[data-message-id="${focusedMessageId}"]`) as HTMLElement)?.focus()
           }
+          // currentIndex <= 0: let native Shift+Tab navigate out of the viewer
+          return
         }
+
+        if (currentIndex >= 0 && currentIndex < messageIds.length - 1) {
+          e.preventDefault()
+          focusedMessageId = messageIds[currentIndex + 1]
+          ;(document.querySelector(`[data-message-id="${focusedMessageId}"]`) as HTMLElement)?.focus()
+          return
+        }
+        if (currentIndex === -1 && messageIds.length > 0) {
+          e.preventDefault()
+          focusedMessageId = messageIds[0]
+          ;(document.querySelector(`[data-message-id="${focusedMessageId}"]`) as HTMLElement)?.focus()
+        }
+        // At last message (currentIndex === messageIds.length - 1): let native Tab navigate out
         return
       }
 
@@ -341,6 +353,9 @@
       refreshTimer = null
     }
     messagesWithImagesLoaded.clear()
+    // Reset focused message on thread change so opening a thread starts fresh.
+    // Same-thread refreshes (handled via scheduleRefresh) preserve focus.
+    focusedMessageId = null
 
     if (threadId && folderId) {
       // Setting is already loaded on mount - no need to fetch on every conversation switch
@@ -574,7 +589,7 @@
 
     // Get unread message IDs
     const unreadIds = messages.filter(m => !m.isRead).map(m => m.id)
-    
+
     if (unreadIds.length === 0) {
       return // No unread messages
     }
@@ -612,12 +627,12 @@
   function toggleMessage(messageId: string) {
     const newSet = new Set(expandedMessages)
     const wasExpanded = newSet.has(messageId)
-    
+
     if (wasExpanded) {
       newSet.delete(messageId)
     } else {
       newSet.add(messageId)
-      
+
       // Check for auto-send read receipt on expand
       if (readReceiptPolicy === 'always' && conversation?.messages) {
         const msg = conversation.messages.find(m => m.id === messageId)
@@ -693,6 +708,10 @@
     return focusedMessageId !== null
   }
 
+  export function getFocusedMessageId(): string | null {
+    return focusedMessageId
+  }
+
   export function selectAllText() {
     const targetId = focusedMessageId ?? getLastMessageId()
     if (!targetId || !expandedMessages.has(targetId)) return
@@ -749,7 +768,7 @@
   async function handleArchive() {
     if (!conversation?.messages) return
     const messageIds = conversation.messages.map(m => m.id)
-    
+
     try {
       await Archive(messageIds)
       toasts.success($_('toast.conversationArchived'), [
@@ -764,7 +783,7 @@
 
   async function handleDelete() {
     if (!conversation?.messages) return
-    
+
     if (isTrashFolder) {
       // Show confirmation dialog for permanent delete
       showDeleteConfirm = true
@@ -883,11 +902,11 @@
 
   async function handleMarkRead() {
     if (!conversation?.messages) return
-    
+
     // Toggle based on current state
     const allRead = conversation.messages.every(m => m.isRead)
     const messageIds = conversation.messages.map(m => m.id)
-    
+
     try {
       if (allRead) {
         await MarkAsUnread(messageIds)
@@ -924,9 +943,9 @@
   // Read receipt handling
   async function handleSendReadReceipt(messageId: string, accountId: string) {
     if (sendingReadReceipt.has(messageId)) return
-    
+
     sendingReadReceipt = new Set([...sendingReadReceipt, messageId])
-    
+
     try {
       await SendReadReceipt(accountId, messageId)
       handledReadReceipts = new Set([...handledReadReceipts, messageId])
@@ -954,13 +973,13 @@
   function shouldShowReadReceiptBanner(msg: messageModels.Message): boolean {
     // Don't show if policy is 'never'
     if (readReceiptPolicy === 'never') return false
-    
+
     // Don't show if no read receipt requested
     if (!msg.readReceiptTo) return false
-    
+
     // Don't show if already handled (from server or locally)
     if (msg.readReceiptHandled || handledReadReceipts.has(msg.id)) return false
-    
+
     return true
   }
 
@@ -990,9 +1009,13 @@
   // Computed: is this the Spam folder?
   const isSpamFolder = $derived(folderType === 'spam')
 
-  // Computed: all message IDs in the conversation (for context menu)
-  const allMessageIds = $derived(
-    conversation?.messages?.map((m) => m.id) || []
+  // Computed: messages visible in the viewer.
+  // In message-focus mode, narrow to the single targeted message.
+  // Otherwise show the whole thread.
+  const visibleMessages = $derived(
+    inFocusMode && focusModeKind === 'message' && focusedMessageIdInFocus
+      ? (conversation?.messages?.filter(m => m.id === focusedMessageIdInFocus) ?? [])
+      : (conversation?.messages ?? [])
   )
 
   // Reference to the scrollable content area
@@ -1103,7 +1126,7 @@
         if (!conversation || !conversation.messages || conversation.messages.length === 0) {
           onActionComplete?.(true) // Auto-select next conversation
         }
-      } catch (err) {
+      } catch {
         // Conversation deleted or error loading - navigate away
         onActionComplete?.(true)
       }
@@ -1115,7 +1138,7 @@
     try {
       await navigator.clipboard.writeText(text)
       toasts.success($_('viewer.copiedToClipboard', { values: { label } }))
-    } catch (err) {
+    } catch {
       toasts.error($_('viewer.failedToCopy'))
     }
   }
@@ -1149,7 +1172,7 @@
     try {
       const source = await GetMessageSource(msgId)
       messageSource = source
-    } catch (err) {
+    } catch {
       toasts.error($_('viewer.failedToLoadSource'))
       viewingSourceMessageId = null
     } finally {
@@ -1224,65 +1247,72 @@
 
         <div class="w-px h-5 bg-border mx-1"></div>
 
-        <button 
-          class="p-2 rounded-md hover:bg-muted transition-colors" 
+        <button
+          class="p-2 rounded-md hover:bg-muted transition-colors"
           title={$_('viewer.archive')}
           onclick={handleArchive}
         >
           <Icon icon="mdi:archive-outline" class="w-5 h-5 text-muted-foreground" />
         </button>
-        <button 
-          class="p-2 rounded-md hover:bg-muted transition-colors" 
+        <button
+          class="p-2 rounded-md hover:bg-muted transition-colors"
           title={$_(isTrashFolder ? 'viewer.deletePermanently' : 'viewer.delete')}
           onclick={handleDelete}
         >
-          <Icon icon={isTrashFolder ? "mdi:delete-forever" : "mdi:delete-outline"} class="w-5 h-5 text-muted-foreground" />
+          <Icon icon={isTrashFolder ? 'mdi:delete-forever' : 'mdi:delete-outline'} class="w-5 h-5 text-muted-foreground" />
         </button>
         <button
           class="p-2 rounded-md hover:bg-muted transition-colors"
           title={$_(isSpamFolder ? 'viewer.markAsNotSpam' : 'viewer.markAsSpam')}
           onclick={handleSpam}
         >
-          <Icon icon={isSpamFolder ? "mdi:email-check-outline" : "mdi:alert-octagon-outline"} class="w-5 h-5 text-muted-foreground" />
+          <Icon icon={isSpamFolder ? 'mdi:email-check-outline' : 'mdi:alert-octagon-outline'} class="w-5 h-5 text-muted-foreground" />
         </button>
 
         <div class="w-px h-5 bg-border mx-1"></div>
 
-        <button 
-          class="p-2 rounded-md hover:bg-muted transition-colors" 
+        <button
+          class="p-2 rounded-md hover:bg-muted transition-colors"
           title={$_(allStarred ? 'viewer.removeStar' : 'viewer.star')}
           onclick={handleStar}
         >
-          <Icon icon={allStarred ? "mdi:star" : "mdi:star-outline"} class="w-5 h-5 {allStarred ? 'text-yellow-500' : 'text-muted-foreground'}" />
+          <Icon icon={allStarred ? 'mdi:star' : 'mdi:star-outline'} class="w-5 h-5 {allStarred ? 'text-yellow-500' : 'text-muted-foreground'}" />
         </button>
-        <button 
-          class="p-2 rounded-md hover:bg-muted transition-colors" 
+        <button
+          class="p-2 rounded-md hover:bg-muted transition-colors"
           title={$_(allRead ? 'viewer.markAsUnread' : 'viewer.markAsRead')}
           onclick={handleMarkRead}
         >
-          <Icon icon={allRead ? "mdi:email-open-outline" : "mdi:email-outline"} class="w-5 h-5 text-muted-foreground" />
+          <Icon icon={allRead ? 'mdi:email-open-outline' : 'mdi:email-outline'} class="w-5 h-5 text-muted-foreground" />
         </button>
       </div>
 
       <div class="flex items-center gap-2">
         {#if conversation.messages && conversation.messages.length > 1}
-          <button 
-            class="p-2 rounded-md hover:bg-muted transition-colors" 
+          <button
+            class="p-2 rounded-md hover:bg-muted transition-colors"
             title={$_('viewer.expandAll')}
             onclick={expandAll}
           >
             <Icon icon="mdi:unfold-more-horizontal" class="w-5 h-5 text-muted-foreground" />
           </button>
-          <button 
-            class="p-2 rounded-md hover:bg-muted transition-colors" 
+          <button
+            class="p-2 rounded-md hover:bg-muted transition-colors"
             title={$_('viewer.collapseAll')}
             onclick={collapseAll}
           >
             <Icon icon="mdi:unfold-less-horizontal" class="w-5 h-5 text-muted-foreground" />
           </button>
         {/if}
-        <button 
-          class="p-2 rounded-md hover:bg-muted transition-colors" 
+        <button
+          class="p-2 rounded-md hover:bg-muted transition-colors"
+          title={inFocusMode && focusModeKind === 'thread' ? $_('viewer.exitFocus') : $_('viewer.focusThread')}
+          onclick={onToggleThreadFocus}
+        >
+          <Icon icon={inFocusMode && focusModeKind === 'thread' ? 'mdi:fullscreen-exit' : 'mdi:fullscreen'} class="w-5 h-5 text-muted-foreground" />
+        </button>
+        <button
+          class="p-2 rounded-md hover:bg-muted transition-colors"
           title={$_('viewer.print')}
           onclick={handlePrint}
         >
@@ -1309,9 +1339,9 @@
         <!-- Stacked Messages -->
         {#if conversation.messages}
           <div class="space-y-4">
-            {#each conversation.messages as msg, index (msg.id)}
+            {#each visibleMessages as msg, _index (msg.id)}
               {@const isExpanded = expandedMessages.has(msg.id)}
-              {@const isLast = index === conversation.messages.length - 1}
+              {@const isFocusedMsg = inFocusMode && focusModeKind === 'message' && focusedMessageIdInFocus === msg.id}
 
               <!-- Wrap each message in its own context menu -->
               <MessageContextMenu
@@ -1328,25 +1358,35 @@
                   class="border rounded-lg overflow-hidden transition-all {focusedMessageId === msg.id ? 'border-primary ring-2 ring-primary/20' : 'border-border'}"
                   data-message-id={msg.id}
                   tabindex="-1"
+                  role="button"
+                  aria-expanded={isExpanded}
                   onfocus={() => focusedMessageId = msg.id}
                   onblur={() => { if (focusedMessageId === msg.id) focusedMessageId = null }}
+                  onkeydown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      toggleMessage(msg.id)
+                    }
+                  }}
                 >
                 <!-- Message Header (always visible, clickable to expand/collapse) -->
-                <!-- svelte-ignore a11y_no_static_element_interactions -->
                 <div
                   class="w-full flex items-start gap-3 p-4 text-left hover:bg-muted/50 transition-colors cursor-pointer {!isExpanded ? 'bg-muted/30' : ''}"
                   onclick={() => toggleMessage(msg.id)}
                   onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleMessage(msg.id) }}
+                  onfocus={() => focusedMessageId = msg.id}
                   role="button"
                   tabindex="0"
                 >
-                  <!-- Avatar -->
-                  <div
-                    class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white text-sm font-medium {getAvatarColor(msg.fromEmail)}"
-                  >
-                    {getInitials(msg.fromName || msg.fromEmail)}
-                  </div>
-                  
+                  <!-- Sender circle (colored, with initials) -->
+                  {#if getShowViewerCircles()}
+                    <div
+                      class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white text-sm font-medium {getAvatarColor(msg.fromEmail)}"
+                    >
+                      {getInitials(msg.fromName || msg.fromEmail)}
+                    </div>
+                  {/if}
+
                   <!-- Header Info -->
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 flex-wrap">
@@ -1384,7 +1424,7 @@
                       {@const recipients = parseRecipients(msg.toList)}
                       <div class="text-sm text-muted-foreground flex flex-wrap items-center gap-1">
                         <span class="opacity-60">{$_('viewer.to')}</span>
-                        {#each recipients as recipient, i}
+                        {#each recipients as recipient, i (recipient.email + ':' + i)}
                           <span
                             role="button"
                             tabindex="0"
@@ -1402,7 +1442,7 @@
                       {#if ccRecipients.length > 0}
                         <div class="text-sm text-muted-foreground flex flex-wrap items-center gap-1">
                           <span class="opacity-60">{$_('viewer.cc')}</span>
-                          {#each ccRecipients as recipient, i}
+                          {#each ccRecipients as recipient, i (recipient.email + ':' + i)}
                             <span
                               role="button"
                               tabindex="0"
@@ -1421,7 +1461,7 @@
                       {#if bccRecipients.length > 0}
                         <div class="text-sm text-muted-foreground flex flex-wrap items-center gap-1">
                           <span class="opacity-60">{$_('viewer.bcc')}</span>
-                          {#each bccRecipients as recipient, i}
+                          {#each bccRecipients as recipient, i (recipient.email + ':' + i)}
                             <span
                               role="button"
                               tabindex="0"
@@ -1434,7 +1474,7 @@
                         </div>
                       {/if}
                     {/if}
-                    
+
                     {#if !isExpanded}
                       <!-- Show snippet when collapsed -->
                       <p class="text-sm text-muted-foreground truncate mt-1">
@@ -1442,7 +1482,7 @@
                       </p>
                     {/if}
                   </div>
-                  
+
                   <!-- Date, edit button (drafts), and expand icon -->
                   <div class="flex items-center gap-2 flex-shrink-0">
                     <span class="text-sm text-muted-foreground">
@@ -1457,13 +1497,20 @@
                         <Icon icon="mdi:pencil" class="w-4 h-4 text-muted-foreground" />
                       </button>
                     {/if}
+                    <button
+                      class="p-1 rounded hover:bg-muted transition-colors"
+                      title={isFocusedMsg ? $_('viewer.exitFocus') : $_('viewer.focusMessage')}
+                      onclick={(e) => { e.stopPropagation(); onToggleMessageFocus?.(msg.id) }}
+                    >
+                      <Icon icon={isFocusedMsg ? 'mdi:fullscreen-exit' : 'mdi:fullscreen'} class="w-4 h-4 text-muted-foreground" />
+                    </button>
                     <Icon
                       icon={isExpanded ? 'mdi:chevron-up' : 'mdi:chevron-down'}
                       class="w-5 h-5 text-muted-foreground"
                     />
                   </div>
                 </div>
-                
+
                 <!-- Message Body (visible when expanded) -->
                 {#if isExpanded}
                   <div class="px-4 pb-4 pt-0">

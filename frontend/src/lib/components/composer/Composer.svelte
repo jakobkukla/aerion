@@ -4,13 +4,13 @@
   import type { Editor } from '@tiptap/core'
   import { createComposerEditor } from './composerEditor'
   // @ts-ignore - Wails generated imports
-  import { smtp, account, contact, app } from '../../../../wailsjs/go/models'
+  import { smtp, account, app } from '../../../../wailsjs/go/models'
   // @ts-ignore - Wails runtime for events
   import { EventsOn, EventsOff } from '../../../../wailsjs/runtime/runtime.js'
   import { type ComposerApi, COMPOSER_API_KEY, createMainWindowApi } from '$lib/composerApi'
   import { isImageAllowedSync } from '$lib/stores/imageAllowlist.svelte'
   import { getAlwaysLoadImages } from '$lib/stores/settings.svelte'
-  
+
   // Attachment type from backend
   interface ComposerAttachment {
     filename: string
@@ -18,7 +18,7 @@
     size: number
     data: string // base64 encoded
   }
-  
+
   // Inline image type - for images pasted/dropped into the editor
   interface InlineImage {
     cid: string  // Content-ID (e.g., "image1@aerion")
@@ -33,7 +33,6 @@
   import {
     addParagraphStyles,
     stripParagraphStyles,
-    base64ToBytes,
     htmlToPlainText,
     parseFileUris,
     plainTextToHtml,
@@ -42,18 +41,16 @@
     textMentionsAttachment,
   } from './composerUtils'
   import {
-    SIGNATURE_MARKER,
     buildSignatureHtml,
     shouldAppendSignature,
     insertSignatureIntoContent,
     removeSignatureFromContent,
     hasSignatureMarker,
-    type ComposeMode,
   } from './composerSignature'
   import * as Select from '$lib/components/ui/select'
   import * as AlertDialog from '$lib/components/ui/alert-dialog'
   import Switch from '$lib/components/ui/switch/Switch.svelte'
-  import { ConfirmDialog, ThreeOptionDialog } from '$lib/components/ui/confirm-dialog'
+  import { ThreeOptionDialog } from '$lib/components/ui/confirm-dialog'
   import { addToast } from '$lib/stores/toast'
   import { getComposerFormat } from '$lib/stores/settings.svelte'
   import { _ } from '$lib/i18n'
@@ -120,19 +117,19 @@
   let poppingOut = $state(false)  // Pop-out in progress
   let editorElement = $state<HTMLElement | null>(null)
   let editor = $state<Editor | null>(null)
-  
+
   // Track In-Reply-To and References for threading
   let inReplyTo = $state<string | undefined>(undefined)
   let references = $state<string[]>([])
-  
+
   // Attachments
   let attachments = $state<ComposerAttachment[]>([])
   let isDraggingOver = $state(false)
-  
+
   // Inline images (embedded in HTML body)
   let inlineImages = $state<InlineImage[]>([])
   let inlineImageCounter = 0  // Counter for generating unique CIDs
-  
+
   // Read receipt request
   let requestReadReceipt = $state(false)
   let showReadReceiptOption = $state(false)  // Show checkbox when policy is 'ask'
@@ -336,7 +333,7 @@
       default: return ''
     }
   })
-  
+
   // 10-second debounce like Geary
   const DRAFT_SAVE_DELAY = 10000
 
@@ -348,14 +345,14 @@
 
   // Max attachment size (100 MB) — server enforces its own limits for smaller caps
   const MAX_ATTACHMENT_SIZE = 100 * 1024 * 1024
-  
+
   // Confirmation dialogs state
   let showEmptySubjectDialog = $state(false)
   let showMissingAttachmentDialog = $state(false)
   let showFlatpakDndDialog = $state(false)
   let showCloseConfirm = $state(false)
   let closeLoading = $state<'discard' | 'save' | null>(null)
-  
+
   // Get only the user-composed text, excluding quoted/forwarded content
   function getUserComposedText(): string {
     const FWD_SEPARATOR = '---------- Forwarded message ----------'
@@ -475,23 +472,23 @@
   // Convert HTML with data URLs to use CID references for inline images
   function convertDataUrlsToCid(html: string): string {
     let result = html
-    
+
     // For each inline image, replace its data URL with cid: reference
     for (const img of inlineImages) {
       result = result.replaceAll(img.dataUrl, `cid:${img.cid}`)
     }
-    
+
     return result
   }
 
   // Build message object from current composer state
   function buildMessage(): smtp.ComposeMessage {
     const selectedIdentity = identities.find(i => i.id === selectedIdentityId)
-    
+
     // Handle plain text vs rich text mode
     let htmlContent: string
     let textContent: string
-    
+
     if (isPlainTextMode) {
       // In plain text mode, we only have plain text
       textContent = plainTextContent
@@ -558,7 +555,7 @@
       pgp_encrypt_message: pgpEncryptMessage,
     })
   }
-  
+
   // Get a content hash to detect meaningful changes
   function getContentHash(): string {
     const bodyContent = isPlainTextMode ? plainTextContent : (editor?.getHTML() || '')
@@ -688,8 +685,6 @@
   })
 
   // Track current signature for swapping when identity changes
-  let currentSignatureHtml = $state<string>('')
-
   // Apply read receipt policy from account settings
   function applyReadReceiptPolicy(policy: string) {
     switch (policy) {
@@ -831,8 +826,6 @@
 
     const signatureHtml = buildSignatureHtml(identity)
     if (!signatureHtml) return
-
-    currentSignatureHtml = signatureHtml
 
     const content = editor.getHTML()
     const newContent = insertSignatureIntoContent(
@@ -1091,13 +1084,13 @@
       showMissingAttachmentDialog = true
       return false
     }
-    
+
     // Check for empty subject
     if (!subject.trim()) {
       showEmptySubjectDialog = true
       return false
     }
-    
+
     return true
   }
 
@@ -1126,7 +1119,7 @@
 
     await doSend()
   }
-  
+
   // Actually send the message (called directly or after confirmation)
   async function doSend() {
     // Cancel any pending draft save
@@ -1166,7 +1159,7 @@
       sending = false
     }
   }
-  
+
   // Handlers for confirmation dialogs
   function handleConfirmEmptySubject() {
     showEmptySubjectDialog = false
@@ -1177,7 +1170,7 @@
       doSend()
     }
   }
-  
+
   function handleConfirmMissingAttachment() {
     showMissingAttachmentDialog = false
     doSend()
@@ -1380,13 +1373,13 @@
       handleClose()
     }
   }
-  
+
   // Generate a unique Content-ID for inline images
   function generateCID(): string {
     inlineImageCounter++
     return `image${inlineImageCounter}-${Date.now()}@aerion`
   }
-  
+
   // Handle an inline image file (from paste or drop)
   async function handleInlineImageFile(file: File) {
     if (file.size > MAX_INLINE_IMAGE_SIZE) {
@@ -1400,17 +1393,17 @@
     try {
       const dataUrl = await readFileAsDataUrl(file)
       const cid = generateCID()
-      
+
       // Extract base64 data and content type from data URL
       const matches = dataUrl.match(/^data:([^;]+);base64,(.+)$/)
       if (!matches) {
         console.error('Invalid data URL format')
         return
       }
-      
+
       const contentType = matches[1]
       const base64Data = matches[2]
-      
+
       // Store the inline image
       const inlineImage: InlineImage = {
         cid,
@@ -1420,11 +1413,11 @@
         filename: file.name || `image${inlineImageCounter}.${contentType.split('/')[1] || 'png'}`,
       }
       inlineImages = [...inlineImages, inlineImage]
-      
+
       // Insert the image into the editor with the data URL (for display)
       // When sending, we'll convert data URLs to cid: references
       editor?.chain().focus().setImage({ src: dataUrl, alt: inlineImage.filename }).run()
-      
+
       scheduleDraftSave()
     } catch (err) {
       console.error('Failed to process inline image:', err)
@@ -1434,7 +1427,7 @@
       })
     }
   }
-  
+
   // Handle a non-image File dropped on the editor (add as attachment)
   async function handleDroppedFile(file: File) {
     if (file.size > MAX_ATTACHMENT_SIZE) {
@@ -1556,25 +1549,25 @@
     }
     input.click()
   }
-  
+
   function removeAttachment(index: number) {
     attachments = attachments.filter((_, i) => i !== index)
     scheduleDraftSave()
   }
-  
+
   // Drag and drop handlers
   function handleDragOver(e: DragEvent) {
     e.preventDefault()
     e.stopPropagation()
     isDraggingOver = true
   }
-  
+
   function handleDragLeave(e: DragEvent) {
     e.preventDefault()
     e.stopPropagation()
     isDraggingOver = false
   }
-  
+
   async function handleDrop(e: DragEvent) {
     e.stopPropagation()
     isDraggingOver = false
@@ -1649,12 +1642,11 @@
       }
     }
   }
-  
+
 </script>
 
 <svelte:window on:keydown={handleKeyDown} />
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   class="flex flex-col h-full bg-background relative"
   class:ring-2={isDraggingOver}
@@ -1737,7 +1729,7 @@
       <span class="text-sm text-muted-foreground w-16">{$_('composer.from')}:</span>
       <div class="flex-1">
         <Select.Root value={selectedIdentityId} onValueChange={handleIdentityChange}>
-          <Select.Trigger class="h-8 border-0 bg-transparent shadow-none focus:ring-0">
+          <Select.Trigger class="h-8 px-0 border-0 bg-transparent shadow-none focus:ring-0">
             <Select.Value placeholder={$_('composer.selectIdentity')}>
               {#if selectedIdentityId}
                 {@const identity = identities.find(i => i.id === selectedIdentityId)}
@@ -1994,7 +1986,7 @@
       <span class="text-xs">{$_('composer.ctrlEnterToSend')}</span>
     </div>
   </div>
-  
+
   <!-- Drag overlay -->
   {#if isDraggingOver}
     <div class="absolute inset-0 bg-primary/10 flex items-center justify-center pointer-events-none z-10">

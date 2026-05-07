@@ -168,7 +168,8 @@
 
   function getSyncIntervalLabel(value: string): string {
     const numValue = Number(value)
-    return syncIntervalOptions.find(opt => opt.value === numValue)?.label || `${value} min`
+    const option = syncIntervalOptions.find(opt => opt.value === numValue)
+    return option ? $_(option.labelKey) : `${value} min`
   }
 
   function getReadReceiptLabel(value: string): string {
@@ -397,8 +398,8 @@
 
     <div class="space-y-2">
       <Label>{$_('account.checkNewMail')}</Label>
-      <Select.Root 
-        value={syncInterval} 
+      <Select.Root
+        value={syncInterval}
         onValueChange={(v) => { syncInterval = v; onSyncIntervalChange(v) }}
       >
         <Select.Trigger>
@@ -408,7 +409,7 @@
         </Select.Trigger>
         <Select.Content>
           {#each syncIntervalOptions as opt (opt.value)}
-            <Select.Item value={String(opt.value)} label={opt.label} />
+            <Select.Item value={String(opt.value)} label={$_(opt.labelKey)} />
           {/each}
         </Select.Content>
       </Select.Root>
@@ -419,8 +420,8 @@
 
     <div class="space-y-2">
       <Label>{$_('account.requestReadReceipts')}</Label>
-      <Select.Root 
-        value={readReceiptRequestPolicy} 
+      <Select.Root
+        value={readReceiptRequestPolicy}
         onValueChange={(v) => { readReceiptRequestPolicy = v; onReadReceiptPolicyChange(v) }}
       >
         <Select.Trigger>

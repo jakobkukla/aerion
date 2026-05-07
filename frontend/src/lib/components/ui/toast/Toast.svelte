@@ -37,13 +37,13 @@
   role="alert"
 >
   <Icon icon={icons[toast.type]} class="w-5 h-5 flex-shrink-0 mt-0.5 {iconColors[toast.type]}" />
-  
+
   <div class="flex-1 min-w-0">
     <p class="text-sm text-foreground">{toast.message}</p>
-    
+
     {#if toast.actions && toast.actions.length > 0}
       <div class="flex gap-2 mt-2">
-        {#each toast.actions as action}
+        {#each toast.actions as action (action.label)}
           <button
             class="text-xs font-medium px-2 py-1 rounded hover:bg-white/10 transition-colors"
             onclick={action.onClick}
@@ -54,7 +54,7 @@
       </div>
     {/if}
   </div>
-  
+
   <button
     class="p-1 rounded hover:bg-white/10 transition-colors flex-shrink-0"
     onclick={onClose}
@@ -75,7 +75,7 @@
       opacity: 1;
     }
   }
-  
+
   .animate-slide-in {
     animation: slide-in 0.2s ease-out;
   }

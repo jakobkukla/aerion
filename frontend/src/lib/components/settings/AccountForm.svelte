@@ -8,7 +8,6 @@
   import {
     providers,
     detectProvider,
-    getProvider,
     getCustomProvider,
     securityOptions,
     syncPeriodOptions,
@@ -17,7 +16,6 @@
     allowsPasswordFallback,
     getOAuthProviderType,
     type EmailProvider,
-    type SecurityType,
     type OAuthProvider,
   } from '$lib/config/providers'
   import { oauthStore } from '$lib/stores/oauth.svelte'
@@ -52,7 +50,7 @@
     editAccount = null,
     onSubmit,
     onCancel,
-    onTestConnection,
+    onTestConnection: _onTestConnection,
   }: Props = $props()
 
   // Form state
@@ -100,12 +98,14 @@
 
   function getSyncPeriodLabel(value: string): string {
     const numValue = Number(value)
-    return syncPeriodOptions.find(opt => opt.value === numValue)?.label || `${value} days`
+    const option = syncPeriodOptions.find(opt => opt.value === numValue)
+    return option ? $_(option.labelKey) : `${value} days`
   }
 
   function getSyncIntervalLabel(value: string): string {
     const numValue = Number(value)
-    return syncIntervalOptions.find(opt => opt.value === numValue)?.label || `${value} min`
+    const option = syncIntervalOptions.find(opt => opt.value === numValue)
+    return option ? $_(option.labelKey) : `${value} min`
   }
 
   function getReadReceiptLabel(value: string): string {
@@ -138,17 +138,6 @@
   let allMailFolderPath = $state('')
   let starredFolderPath = $state('')
 
-  // Folder mapping types configuration
-  const folderMappingTypes = $derived([
-    { key: 'sent', label: $_('account.folderSent'), getValue: () => sentFolderPath, setValue: (v: string) => sentFolderPath = v },
-    { key: 'drafts', label: $_('account.folderDrafts'), getValue: () => draftsFolderPath, setValue: (v: string) => draftsFolderPath = v },
-    { key: 'trash', label: $_('account.folderTrash'), getValue: () => trashFolderPath, setValue: (v: string) => trashFolderPath = v },
-    { key: 'spam', label: $_('account.folderSpam'), getValue: () => spamFolderPath, setValue: (v: string) => spamFolderPath = v },
-    { key: 'archive', label: $_('account.folderArchive'), getValue: () => archiveFolderPath, setValue: (v: string) => archiveFolderPath = v },
-    { key: 'all', label: $_('account.folderAllMail'), getValue: () => allMailFolderPath, setValue: (v: string) => allMailFolderPath = v },
-    { key: 'starred', label: $_('account.folderStarred'), getValue: () => starredFolderPath, setValue: (v: string) => starredFolderPath = v },
-  ])
-
   // Load folders for mapping UI
   async function loadFoldersForMapping() {
     if (!editAccount || availableFolders.length > 0) return
@@ -161,17 +150,17 @@
       // Pre-select: use saved value if exists, otherwise auto-detected
       // @ts-ignore - wailsjs binding will have these fields after regeneration
       sentFolderPath = editAccount.sentFolderPath || autoDetectedFolders.sent || ''
-      // @ts-ignore
+      // @ts-ignore - wailsjs binding will have these fields after regeneration
       draftsFolderPath = editAccount.draftsFolderPath || autoDetectedFolders.drafts || ''
-      // @ts-ignore
+      // @ts-ignore - wailsjs binding will have these fields after regeneration
       trashFolderPath = editAccount.trashFolderPath || autoDetectedFolders.trash || ''
-      // @ts-ignore
+      // @ts-ignore - wailsjs binding will have these fields after regeneration
       spamFolderPath = editAccount.spamFolderPath || autoDetectedFolders.spam || ''
-      // @ts-ignore
+      // @ts-ignore - wailsjs binding will have these fields after regeneration
       archiveFolderPath = editAccount.archiveFolderPath || autoDetectedFolders.archive || ''
-      // @ts-ignore
+      // @ts-ignore - wailsjs binding will have these fields after regeneration
       allMailFolderPath = editAccount.allMailFolderPath || autoDetectedFolders.all || ''
-      // @ts-ignore
+      // @ts-ignore - wailsjs binding will have these fields after regeneration
       starredFolderPath = editAccount.starredFolderPath || autoDetectedFolders.starred || ''
     } catch (err) {
       console.error('Failed to load folders for mapping:', err)
@@ -206,17 +195,17 @@
       // Initialize folder mappings (will be populated when section is expanded)
       // @ts-ignore - wailsjs binding will have these fields after regeneration
       sentFolderPath = editAccount.sentFolderPath || ''
-      // @ts-ignore
+      // @ts-ignore - wailsjs binding will have these fields after regeneration
       draftsFolderPath = editAccount.draftsFolderPath || ''
-      // @ts-ignore
+      // @ts-ignore - wailsjs binding will have these fields after regeneration
       trashFolderPath = editAccount.trashFolderPath || ''
-      // @ts-ignore
+      // @ts-ignore - wailsjs binding will have these fields after regeneration
       spamFolderPath = editAccount.spamFolderPath || ''
-      // @ts-ignore
+      // @ts-ignore - wailsjs binding will have these fields after regeneration
       archiveFolderPath = editAccount.archiveFolderPath || ''
-      // @ts-ignore
+      // @ts-ignore - wailsjs binding will have these fields after regeneration
       allMailFolderPath = editAccount.allMailFolderPath || ''
-      // @ts-ignore
+      // @ts-ignore - wailsjs binding will have these fields after regeneration
       starredFolderPath = editAccount.starredFolderPath || ''
 
       // Try to detect provider
@@ -409,17 +398,17 @@
     if (!displayName.trim()) errors.displayName = $_('account.displayNameRequired')
     if (!email.trim()) errors.email = $_('account.emailRequired')
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = $_('account.invalidEmail')
-    
+
     // Password is only required for password auth on new accounts
     if (authMethod === 'password' && !password && !editAccount) {
       errors.password = $_('account.passwordRequired')
     }
-    
+
     // For OAuth, check that the flow completed successfully
     if (authMethod === 'oauth2' && !editAccount && !oauthStore.isFlowSuccess) {
       errors.oauth = $_('account.pleaseCompleteSignIn')
     }
-    
+
     if (!imapHost.trim()) errors.imapHost = $_('account.imapHostRequired')
     if (!smtpHost.trim()) errors.smtpHost = $_('account.smtpHostRequired')
     if (imapPort < 1 || imapPort > 65535) errors.imapPort = $_('account.invalidPort')
@@ -499,9 +488,9 @@
           expiresIn: oauthStore.flowResult.expiresIn,
         }
       }
-      
+
       await onSubmit?.(buildConfig(), oauthCredentials)
-      
+
       // Reset OAuth state on success
       if (authMethod === 'oauth2') {
         oauthStore.reset()
@@ -570,7 +559,7 @@
         <div class="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
           <Icon icon="mdi:information-outline" class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
           <p class="text-sm text-amber-600 dark:text-amber-400">
-            {selectedProvider.notes}
+            {selectedProvider.notesKey ? $_(selectedProvider.notesKey) : selectedProvider.notes}
           </p>
         </div>
       {/if}
@@ -647,7 +636,7 @@
             <!-- OAuth Provider - Show Sign In Button -->
             <div class="space-y-3">
               <Label>{$_('account.authentication')}</Label>
-              
+
               {#if allowsPasswordFallback(selectedProvider!)}
                 <!-- Provider allows both OAuth and password -->
                 <div class="flex gap-2">
@@ -940,7 +929,7 @@
               </Select.Trigger>
               <Select.Content>
                 {#each syncPeriodOptions as opt (opt.value)}
-                  <Select.Item value={String(opt.value)} label={opt.label} />
+                  <Select.Item value={String(opt.value)} label={$_(opt.labelKey)} />
                 {/each}
               </Select.Content>
             </Select.Root>
@@ -960,7 +949,7 @@
               </Select.Trigger>
               <Select.Content>
                 {#each syncIntervalOptions as opt (opt.value)}
-                  <Select.Item value={String(opt.value)} label={opt.label} />
+                  <Select.Item value={String(opt.value)} label={$_(opt.labelKey)} />
                 {/each}
               </Select.Content>
             </Select.Root>

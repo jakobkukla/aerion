@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
   import Icon from '@iconify/svelte'
   import * as Dialog from '$lib/components/ui/dialog'
   import * as Tabs from '$lib/components/ui/tabs'
@@ -58,7 +57,7 @@
   let syncFoldersEnabled = $state(false)
   let readReceiptRequestPolicy = $state('never')
   let authType = $state('password')
-  
+
   // Folder mappings
   let sentFolderPath = $state('')
   let draftsFolderPath = $state('')
@@ -79,7 +78,7 @@
     if (open && editAccount && !initialized) {
       initialized = true
       activeTab = 'general'
-      
+
       // Load account values
       name = editAccount.name
       email = editAccount.email
@@ -97,7 +96,7 @@
       readReceiptRequestPolicy = editAccount.readReceiptRequestPolicy || 'never'
       authType = editAccount.authType || 'password'
       color = editAccount.color || ''
-      
+
       // Folder mappings
       sentFolderPath = editAccount.sentFolderPath || ''
       draftsFolderPath = editAccount.draftsFolderPath || ''
@@ -180,7 +179,7 @@
       })
 
       const result = await accountStore.updateAccount(editAccount.id, config)
-      
+
       addToast({
         type: 'success',
         message: $_('toast.accountSaved'),

@@ -6,8 +6,8 @@
   // @ts-ignore - wailsjs path
   import { message as messageModels } from '../../../../wailsjs/go/models'
   // @ts-ignore - wailsjs runtime
-  import { EventsOn, EventsOff } from '../../../../wailsjs/runtime/runtime'
-import { onDestroy, tick } from 'svelte'
+  import { EventsOn } from '../../../../wailsjs/runtime/runtime'
+import { tick } from 'svelte'
 import { fade } from 'svelte/transition'
 import { _ } from '$lib/i18n'
 
@@ -100,24 +100,6 @@ import { _ } from '$lib/i18n'
     }
   }
 
-  function formatBytes(bytes: number): string {
-    if (bytes === 0) return '0 B'
-    const k = 1024
-    const sizes = ['B', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
-  }
-
-  function getFileIcon(type: string): string {
-    if (type.includes('pdf')) return 'mdi:file-pdf-box'
-    if (type.includes('word') || type.includes('document')) return 'mdi:file-word-box'
-    if (type.includes('excel') || type.includes('spreadsheet')) return 'mdi:file-excel-box'
-    if (type.includes('image')) return 'mdi:file-image'
-    if (type.includes('video')) return 'mdi:file-video'
-    if (type.includes('audio')) return 'mdi:file-music'
-    if (type.includes('zip') || type.includes('archive')) return 'mdi:folder-zip'
-    return 'mdi:file-outline'
-  }
 
   function getInitials(name: string): string {
     return name
@@ -174,11 +156,11 @@ import { _ } from '$lib/i18n'
   // Wrap HTML email with consistent styling (rounded corners) and fallback background if needed
   function prepareHtmlEmail(html: string): string {
     if (!html) return ''
-    
+
     // Always wrap for consistent styling (rounded corners, overflow hidden)
     // Use font-family: inherit to ensure system fonts are used for CJK support
     const baseStyles = 'border-radius: 0.375rem; overflow: hidden; font-family: inherit;'
-    
+
     if (hasBackgroundSet(html)) {
       // Email sets its own background, just add rounded corners
       return `<div style="${baseStyles}">${html}</div>`
@@ -296,6 +278,7 @@ import { _ } from '$lib/i18n'
               </span>
             </div>
           {:else if message.bodyHtml}
+            <!-- eslint-disable-next-line svelte/no-at-html-tags -- prepareHtmlEmail sanitizes via bluemonday on the Go side -->
             {@html prepareHtmlEmail(message.bodyHtml)}
           {:else if message.bodyText}
             <pre class="whitespace-pre-wrap font-sans">{message.bodyText}</pre>

@@ -149,9 +149,9 @@
 
           <!-- Actions -->
           <div class="flex items-center gap-2 pt-1">
-            <Button 
-              size="sm" 
-              variant="ghost" 
+            <Button
+              size="sm"
+              variant="ghost"
               onclick={() => handleSync(source.id)}
               disabled={syncingSourceId === source.id}
             >

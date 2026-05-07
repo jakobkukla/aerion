@@ -37,9 +37,9 @@
     <Icon icon="mdi:email-fast-outline" class="w-5 h-5 text-primary" />
     <span class="text-sm font-medium text-foreground">Aerion</span>
   </div>
-  
+
   <!-- Mac-style traffic light controls -->
-  <div 
+  <div
     class="flex items-center gap-2 px-3 h-full"
     role="group"
     aria-label={$_('aria.windowControls')}
@@ -57,7 +57,7 @@
         <span class="text-[10px] font-bold text-black/60 leading-none">−</span>
       {/if}
     </button>
-    
+
     <!-- Maximize/Restore (green) -->
     <button
       class="w-3 h-3 rounded-full flex items-center justify-center transition-all bg-[#28C840] hover:brightness-90 active:brightness-75"
@@ -69,7 +69,7 @@
         <span class="text-[10px] font-bold text-black/60 leading-none">+</span>
       {/if}
     </button>
-    
+
     <!-- Close (red) -->
     <button
       class="w-3 h-3 rounded-full flex items-center justify-center transition-all bg-[#FF5F57] hover:brightness-90 active:brightness-75"

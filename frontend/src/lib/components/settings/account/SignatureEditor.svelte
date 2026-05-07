@@ -121,23 +121,23 @@
           const { view } = this.editor
           const { state } = view
           const { schema, selection, storedMarks } = state
-          
+
           const hardBreakType = schema.nodes.hardBreak
           if (!hardBreakType) return false
-          
+
           const fromPos = selection.$from
           if (fromPos.parent.type.spec.isolating) return false
-          
-          const marks = storedMarks || 
-            (selection.$to.parentOffset && selection.$from.marks()) || 
+
+          const marks = storedMarks ||
+            (selection.$to.parentOffset && selection.$from.marks()) ||
             []
-          
+
           let tr = state.tr.replaceSelectionWith(hardBreakType.create(), false)
-          
+
           if (marks.length > 0) {
             tr = tr.ensureMarks(marks)
           }
-          
+
           tr.scrollIntoView()
           view.dispatch(tr)
           return true
@@ -160,7 +160,7 @@
   let editorElement: HTMLElement | undefined = $state()
   let editor: Editor | null = null
   let isUpdatingFromProp = false
-  
+
   // Track active formatting states - updated via transaction listener for performance
   let activeStates = $state({
     bold: false,
@@ -198,7 +198,7 @@
     '#16a34a', '#0891b2', '#2563eb', // Cool
     '#7c3aed', '#c026d3', '#e11d48', // Vibrant
   ]
-  
+
   // Update active states from editor
   function updateActiveStates() {
     if (!editor) return
@@ -279,7 +279,7 @@
         handlePaste: (view, event) => {
           const items = event.clipboardData?.items
           if (!items) return false
-          
+
           for (const item of items) {
             if (item.type.startsWith('image/')) {
               event.preventDefault()
@@ -296,10 +296,10 @@
         // Handle drop events for images
         handleDrop: (view, event, slice, moved) => {
           if (moved) return false
-          
+
           const files = event.dataTransfer?.files
           if (!files?.length) return false
-          
+
           for (const file of files) {
             if (file.type.startsWith('image/')) {
               event.preventDefault()
@@ -320,7 +320,7 @@
         updateActiveStates()
       },
     })
-    
+
     // Initial state update
     updateActiveStates()
   })
@@ -524,7 +524,7 @@
   }
 </script>
 
-<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <div class="border border-input rounded-md overflow-hidden bg-background" role="toolbar" aria-label={$_('aria.signatureEditor')} tabindex="-1" onclick={handleClickOutside}>
   <!-- Toolbar -->
   <div class="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-border bg-muted/30">
@@ -585,7 +585,7 @@
         {#if showColorPicker}
           <div class="absolute top-full left-0 mt-1 p-2 bg-popover border border-border rounded-md shadow-lg z-50">
             <div class="grid grid-cols-4 gap-1 mb-2">
-              {#each presetColors as color}
+              {#each presetColors as color (color)}
                 <button
                   type="button"
                   onclick={() => setColor(color)}
@@ -629,7 +629,7 @@
 
         {#if showFontSizePicker}
           <div class="absolute top-full left-0 mt-1 py-1 bg-popover border border-border rounded-md shadow-lg z-50 min-w-[60px]">
-            {#each fontSizes as size}
+            {#each fontSizes as size (size)}
               <button
                 type="button"
                 onclick={() => setFontSize(size)}

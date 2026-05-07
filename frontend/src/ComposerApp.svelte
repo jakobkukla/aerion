@@ -16,18 +16,18 @@
   // @ts-ignore - wailsjs imports
   import { smtp, app } from '../wailsjs/go/models'
   // @ts-ignore - wailsjs runtime
-  import { WindowMinimise, WindowToggleMaximise, WindowShow, WindowSetTitle, Quit, EventsOn, EventsOff } from '../wailsjs/runtime/runtime'
+  import { WindowMinimise, WindowToggleMaximise, WindowShow, WindowSetTitle, EventsOn, EventsOff } from '../wailsjs/runtime/runtime'
 
   // Compose mode info from backend
   let composeMode = $state<app.ComposeMode | null>(null)
   let initialMessage = $state<smtp.ComposeMessage | null>(null)
   let loading = $state(true)
   let error = $state<string | null>(null)
-  
+
   // Window state
   let isMaximized = $state(false)
   let isHovering = $state(false)
-  
+
   // Close request state - triggers Composer's close dialog
   let closeRequested = $state(false)
 
@@ -87,9 +87,9 @@
     EventsOn('theme:changed', (newTheme: string) => {
       handleThemeChanged(newTheme)
     })
-    
+
     // Listen for shutdown request from main window
-    EventsOn('app:shutdown', (reason: string) => {
+    EventsOn('app:shutdown', (_reason: string) => {
       addToast({
         type: 'info',
         message: $_('toast.mainWindowClosing'),
@@ -99,18 +99,18 @@
         CloseWindow()
       }, 1000)
     })
-    
+
     // Load compose mode and initial data
     try {
       composeMode = await GetComposeMode()
-      
+
       // If editing a draft, load it
       if (composeMode?.draftId) {
         const draft = await GetDraft()
         if (draft) {
           initialMessage = draft
         }
-      } 
+      }
       // If replying/forwarding, prepare the message
       else if (composeMode?.mode !== 'new' && composeMode?.messageId) {
         const prepared = await PrepareReply()
@@ -132,7 +132,7 @@
       loading = false
     }
   })
-  
+
   onDestroy(() => {
     EventsOff('theme:changed')
     EventsOff('app:shutdown')
@@ -142,27 +142,27 @@
   async function minimize() {
     await WindowMinimise()
   }
-  
+
   async function toggleMaximize() {
     await WindowToggleMaximise()
     isMaximized = !isMaximized
   }
-  
+
   // Request close - triggers Composer's close confirmation dialog
   function requestClose() {
     closeRequested = true
   }
-  
+
   // Called when Composer has handled the close request (user made a choice)
   function handleCloseHandled() {
     closeRequested = false
   }
-  
+
   // Handle composer close (after send or discard confirmation)
   function handleComposerClose() {
     CloseWindow()
   }
-  
+
   // Handle message sent
   function handleMessageSent() {
     // The Composer component shows its own toast

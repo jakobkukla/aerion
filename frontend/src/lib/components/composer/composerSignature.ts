@@ -22,7 +22,7 @@ export function buildSignatureHtml(identity: Identity): string {
   if (!identity.signatureEnabled) return ''
   if (!identity.signatureHtml) return ''
 
-  let html = ''
+  let html: string
 
   // Add separator line if enabled (with marker at the start)
   if (identity.signatureSeparator) {

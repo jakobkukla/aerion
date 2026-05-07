@@ -1,5 +1,16 @@
 # CHANGELOG
 
+**v0.2.1 - 05-07-2026**
+---
+
+- Added thread and message focus mode - [#129](https://github.com/hkdb/aerion/issues/129)
+- Added contact circle enable/disable
+- Added French translation
+- Fixed keyboard expand/collapse of focused messages
+- Fixed untranslated drop down menu items
+- Fixed iCloud Empty Trash - [#136](https://github.com/hkdb/aerion/issues/136)
+- Added ESLint for frontend linting
+
 
 **v0.2.0 - 04-29-2026**
 ---

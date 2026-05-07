@@ -90,10 +90,18 @@ test:
 	@echo "Running tests..."
 	go test ./...
 
-# Run linter (requires golangci-lint)
-lint:
-	@echo "Running linter..."
+# Run all linters (Go + frontend)
+lint: lint-go lint-frontend
+
+# Run Go linter (requires golangci-lint)
+lint-go:
+	@echo "Running Go linter..."
 	golangci-lint run
+
+# Run frontend linter (ESLint)
+lint-frontend:
+	@echo "Running frontend linter..."
+	cd frontend && npm run lint
 
 # Format Go code
 fmt:
@@ -233,9 +241,11 @@ help:
 	@echo "  make build-windows-installer - Build NSIS installer for Windows"
 	@echo ""
 	@echo "Code Quality:"
-	@echo "  make test         - Run Go tests"
-	@echo "  make lint         - Run linter (requires golangci-lint)"
-	@echo "  make fmt          - Format Go code"
+	@echo "  make test          - Run Go tests"
+	@echo "  make lint          - Run all linters (Go + frontend)"
+	@echo "  make lint-go       - Run Go linter only (requires golangci-lint)"
+	@echo "  make lint-frontend - Run frontend linter only (ESLint)"
+	@echo "  make fmt           - Format Go code"
 	@echo ""
 	@echo "Maintenance:"
 	@echo "  make clean        - Clean build artifacts"

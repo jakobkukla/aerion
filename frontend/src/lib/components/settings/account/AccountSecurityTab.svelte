@@ -547,7 +547,7 @@
           <p class="text-sm text-muted-foreground py-2">{$_('security.noPGPKeysHelp')}</p>
         {:else}
           <div class="space-y-2">
-            {#each pgpKeys as key}
+            {#each pgpKeys as key (key.id)}
               <div class="flex items-start gap-3 p-3 rounded-md border border-border bg-card">
                 <div class="flex-shrink-0 mt-0.5">
                   {#if key.isExpired}
@@ -666,7 +666,7 @@
         {#if !keyServersCollapsed}
           {#if keyServers.length > 0}
             <div class="space-y-1">
-              {#each keyServers as server}
+              {#each keyServers as server (server.id)}
                 <div class="flex items-center gap-3 p-2 rounded-md border border-border">
                   <Icon icon="mdi:web" class="w-4 h-4 text-muted-foreground flex-shrink-0" />
                   <span class="text-sm flex-1 truncate">{server.url.replace('https://', '')}</span>
@@ -730,7 +730,7 @@
           <p class="text-sm text-muted-foreground py-2">{$_('security.noRecipientPGPKeysHelp')}</p>
         {:else}
           <div class="space-y-2">
-            {#each pgpSenderKeys as key}
+            {#each pgpSenderKeys as key (key.id)}
               <div class="flex items-center gap-3 p-2 rounded-md border border-border">
                 <Icon icon="mdi:key-variant" class="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <div class="flex-1 min-w-0">
@@ -783,7 +783,7 @@
           <p class="text-sm text-muted-foreground py-2">{$_('security.noSMIMECertsHelp')}</p>
         {:else}
           <div class="space-y-2">
-            {#each certificates as cert}
+            {#each certificates as cert (cert.id)}
               <div class="flex items-start gap-3 p-3 rounded-md border border-border bg-card">
                 <div class="flex-shrink-0 mt-0.5">
                   {#if cert.isExpired}
@@ -904,7 +904,7 @@
           <p class="text-sm text-muted-foreground py-2">{$_('security.noRecipientCertsHelp')}</p>
         {:else}
           <div class="space-y-2">
-            {#each senderCerts as cert}
+            {#each senderCerts as cert (cert.id)}
               <div class="flex items-center gap-3 p-2 rounded-md border border-border">
                 <Icon icon="mdi:account-key-outline" class="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <div class="flex-1 min-w-0">
@@ -930,7 +930,6 @@
 <!-- Import Dialog -->
 {#if showImportDialog}
   <div class="fixed inset-0 z-50 flex items-center justify-center">
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div role="button" tabindex="-1" class="absolute inset-0 bg-black/50" onclick={handleCancelImport} onkeydown={(e) => { if (e.key === 'Escape') handleCancelImport() }}></div>
     <div class="relative bg-background border border-border rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
       <h3 class="text-lg font-semibold mb-4">{$_('security.importCertificateTitle')}</h3>
@@ -981,7 +980,6 @@
 <!-- BER Encoding Confirmation Dialog -->
 {#if showBERConfirmDialog}
   <div class="fixed inset-0 z-50 flex items-center justify-center">
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div role="button" tabindex="-1" class="absolute inset-0 bg-black/50" onclick={() => { showBERConfirmDialog = false }} onkeydown={(e) => { if (e.key === 'Escape') showBERConfirmDialog = false }}></div>
     <div class="relative bg-background border border-border rounded-lg shadow-lg p-6 w-full max-w-md">
       <h3 class="text-lg font-semibold mb-4">{$_('security.berConversionTitle')}</h3>
@@ -1004,7 +1002,6 @@
 <!-- Recipient Cert Import Dialog -->
 {#if showRecipientImportDialog}
   <div class="fixed inset-0 z-50 flex items-center justify-center">
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div role="button" tabindex="-1" class="absolute inset-0 bg-black/50" onclick={handleCancelRecipientImport} onkeydown={(e) => { if (e.key === 'Escape') handleCancelRecipientImport() }}></div>
     <div class="relative bg-background border border-border rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
       <h3 class="text-lg font-semibold mb-4">{$_('security.importRecipientCertTitle')}</h3>
@@ -1055,7 +1052,6 @@
 <!-- PGP Key Import Dialog -->
 {#if showPGPImportDialog}
   <div class="fixed inset-0 z-50 flex items-center justify-center">
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div role="button" tabindex="-1" class="absolute inset-0 bg-black/50" onclick={handleCancelPGPImport} onkeydown={(e) => { if (e.key === 'Escape') handleCancelPGPImport() }}></div>
     <div class="relative bg-background border border-border rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
       <h3 class="text-lg font-semibold mb-4">{$_('security.importPGPKeyTitle')}</h3>
@@ -1106,7 +1102,6 @@
 <!-- PGP Recipient Key Import Dialog -->
 {#if showPGPRecipientImportDialog}
   <div class="fixed inset-0 z-50 flex items-center justify-center">
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div role="button" tabindex="-1" class="absolute inset-0 bg-black/50" onclick={handleCancelPGPRecipientImport} onkeydown={(e) => { if (e.key === 'Escape') handleCancelPGPRecipientImport() }}></div>
     <div class="relative bg-background border border-border rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
       <h3 class="text-lg font-semibold mb-4">{$_('security.importRecipientPGPKeyTitle')}</h3>

@@ -77,7 +77,7 @@
     <!-- Expand/Collapse Toggle -->
     <button
       class="p-0.5 -ml-0.5 hover:bg-muted rounded transition-colors"
-      onclick={(e) => { e.stopPropagation(); toggleExpanded(); }}
+      onclick={(e) => { e.stopPropagation(); toggleExpanded() }}
     >
       <Icon
         icon={expanded ? 'mdi:chevron-down' : 'mdi:chevron-right'}

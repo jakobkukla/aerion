@@ -21,7 +21,7 @@
 {#if attachments.length > 0}
   <div class="px-4 py-2 border-t border-border bg-muted/30">
     <div class="flex flex-wrap gap-2">
-      {#each attachments as attachment, index}
+      {#each attachments as attachment, index (index)}
         <div class="flex items-center gap-2 px-3 py-1.5 bg-background border border-border rounded-md text-sm group">
           <Icon icon={getFileIcon(attachment.contentType)} class="w-4 h-4 text-muted-foreground" />
           <span class="max-w-[150px] truncate" title={attachment.filename}>

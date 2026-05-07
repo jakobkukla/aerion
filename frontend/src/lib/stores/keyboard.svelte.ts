@@ -1,6 +1,6 @@
 /**
  * Keyboard and pane focus management store
- * 
+ *
  * Tracks which pane is focused and manages focus state for keyboard navigation.
  */
 
@@ -50,9 +50,9 @@ function triggerFlash(pane: FocusablePane) {
   if (flashTimeoutId) {
     clearTimeout(flashTimeoutId)
   }
-  
+
   flashingPane = pane
-  
+
   // Clear flash after animation duration
   flashTimeoutId = setTimeout(() => {
     flashingPane = null
@@ -96,24 +96,24 @@ export function isInputElement(target: EventTarget | null): boolean {
   if (!target || !(target instanceof HTMLElement)) {
     return false
   }
-  
+
   const tagName = target.tagName.toUpperCase()
-  
+
   // Check for standard input elements
   if (tagName === 'INPUT' || tagName === 'TEXTAREA') {
     return true
   }
-  
+
   // Check for contenteditable elements (like TipTap editor)
   if (target.isContentEditable) {
     return true
   }
-  
+
   // Check for elements with role="textbox"
   if (target.getAttribute('role') === 'textbox') {
     return true
   }
-  
+
   return false
 }
 

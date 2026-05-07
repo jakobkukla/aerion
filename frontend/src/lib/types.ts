@@ -15,13 +15,13 @@ export interface Folder {
   children?: Folder[]
 }
 
-export type FolderType = 
-  | 'inbox' 
-  | 'sent' 
-  | 'drafts' 
-  | 'trash' 
-  | 'archive' 
-  | 'spam' 
+export type FolderType =
+  | 'inbox'
+  | 'sent'
+  | 'drafts'
+  | 'trash'
+  | 'archive'
+  | 'spam'
   | 'folder'
 
 // Message types
@@ -104,9 +104,9 @@ export interface SyncStatus {
 }
 
 // Power state types
-export type PowerState = 
-  | 'ac' 
-  | 'battery' 
+export type PowerState =
+  | 'ac'
+  | 'battery'
   | 'low-battery'
 
 export interface AppState {

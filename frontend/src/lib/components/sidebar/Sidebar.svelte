@@ -9,7 +9,7 @@
   import { Button } from '$lib/components/ui/button'
   import { accountStore } from '$lib/stores/accounts.svelte'
   import { contactSourcesStore } from '$lib/stores/contactSources.svelte'
-  import { isAccountExpanded, setAccountExpanded, isUnifiedInboxExpanded, isFolderCollapsed, setFolderCollapsed, getUIState, getUIStateVersion, saveUIState } from '$lib/stores/uiState.svelte'
+  import { isAccountExpanded, setAccountExpanded, isUnifiedInboxExpanded, setFolderCollapsed, getUIState, getUIStateVersion, saveUIState } from '$lib/stores/uiState.svelte'
   import { setFocusedPane } from '$lib/stores/keyboard.svelte'
   import { _ } from '$lib/i18n'
   // @ts-ignore - wailsjs path
@@ -127,7 +127,7 @@
     selectedAccountId = null,
     selectedFolderId = null,
     selectionSource = null,
-    isFocused = false,
+    isFocused: _isFocused = false,
     isFlashing = false,
     showBackButton = false,
     onBack,
@@ -153,12 +153,12 @@
         console.error('Failed to sync on launch:', err)
       }
     })
-    
+
     contactSourcesStore.load()
     loadUnifiedInboxCount()
 
     // Listen for folder count changes to update unified inbox count
-    const unsubscribe = EventsOn('folders:countsChanged', (data: Record<string, number>) => {
+    const unsubscribe = EventsOn('folders:countsChanged', (_data: Record<string, number>) => {
       loadUnifiedInboxCount()
     })
 
@@ -388,10 +388,10 @@
   export function selectPreviousFolder() {
     const navList = buildFolderNavList()
     if (navList.length === 0) return
-    
+
     const currentIndex = getCurrentFolderIndex()
     const newIndex = currentIndex <= 0 ? 0 : currentIndex - 1
-    
+
     selectFolderByIndex(navList, newIndex)
   }
 
@@ -399,10 +399,10 @@
   export function selectNextFolder() {
     const navList = buildFolderNavList()
     if (navList.length === 0) return
-    
+
     const currentIndex = getCurrentFolderIndex()
     const newIndex = currentIndex >= navList.length - 1 ? navList.length - 1 : currentIndex + 1
-    
+
     selectFolderByIndex(navList, newIndex)
   }
 

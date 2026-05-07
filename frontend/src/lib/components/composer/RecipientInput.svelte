@@ -13,7 +13,7 @@
   }
 
   let { recipients = $bindable([]), placeholder = 'Add recipients...', searchContactsFn }: Props = $props()
-  
+
   // Get API from context or create default
   const contextApi = getContext<ComposerApi | undefined>(COMPOSER_API_KEY)
   const api: ComposerApi = contextApi || createMainWindowApi()
@@ -110,17 +110,17 @@
     // Parse email address (handle "Name <email@example.com>" format)
     const emailRegex = /^(?:(.+?)\s*<)?([^\s<>]+@[^\s<>]+)>?$/
     const match = value.match(emailRegex)
-    
+
     if (match) {
       const name = match[1]?.trim() || ''
       const email = match[2].toLowerCase()
-      
+
       // Check if already added (handle both 'address' and 'email' field names)
       if (recipients.some(r => (r.address || (r as any).email || '').toLowerCase() === email)) {
         inputValue = ''
         return
       }
-      
+
       const address = new smtp.Address({
         name: name,
         address: email,
@@ -171,7 +171,7 @@
 <div bind:this={containerElement} class="relative">
   <div class="flex flex-wrap items-center gap-1">
     <!-- Recipient chips -->
-    {#each recipients as recipient, index}
+    {#each recipients as recipient, index (recipient.address + ':' + index)}
       <div class="flex items-center gap-1 px-2 py-0.5 bg-muted rounded-md text-sm">
         <span>
           {#if recipient.name}
@@ -208,7 +208,7 @@
   <!-- Suggestions dropdown -->
   {#if showSuggestions}
     <div class="absolute left-0 right-0 top-full mt-1 bg-popover border border-border rounded-md shadow-lg z-50 max-h-60 overflow-auto">
-      {#each suggestions as suggestion, index}
+      {#each suggestions as suggestion, index (suggestion.email + ':' + index)}
         <button
           onmousedown={() => selectSuggestion(suggestion)}
           class="w-full px-3 py-2 text-left hover:bg-muted transition-colors flex items-center gap-3 {index === selectedIndex ? 'bg-muted' : ''}"

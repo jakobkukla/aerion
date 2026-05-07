@@ -1,13 +1,15 @@
 {
   "name": "aerion",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.json"
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "@iconify/svelte": "^4.2.0",
@@ -35,22 +37,29 @@
     "tiptap-extension-font-size": "^1.2.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@iconify-json/heroicons": "^1.2.3",
     "@iconify-json/logos": "^1.2.10",
     "@iconify-json/lucide": "^1.2.87",
     "@iconify-json/mdi": "^1.2.3",
     "@iconify-json/simple-icons": "^1.2.68",
     "@iconify/json": "^2.2.432",
+    "@stylistic/eslint-plugin": "^5.10.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "@tailwindcss/typography": "^0.5.16",
     "@tsconfig/svelte": "^5.0.4",
     "autoprefixer": "^10.4.20",
+    "eslint": "^10.3.0",
+    "eslint-plugin-svelte": "^3.17.1",
+    "globals": "^17.6.0",
     "postcss": "^8.4.49",
     "svelte": "^5.16.0",
     "svelte-check": "^4.1.1",
+    "svelte-eslint-parser": "^1.6.1",
     "tailwindcss": "^3.4.17",
     "tslib": "^2.8.1",
     "typescript": "^5.7.2",
+    "typescript-eslint": "^8.59.2",
     "unplugin-icons": "^23.0.1",
     "vite": "^6.0.6"
   }
