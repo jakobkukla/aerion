@@ -404,11 +404,18 @@ Special thanks to translation contributors for making Aerion more accessible:
 <table>
   <tr>
     <td align="center">
+      <a href="https://github.com/lorduskordus">
+        <img src="https://github.com/lorduskordus.png" width="80"><br>
+        <sub><b>lorduskordus</b></sub>
+      </a><br>
+      <sub>Čeština (cs)</sub>
+    </td>
+    <td align="center">
       <a href="https://github.com/freemans32">
         <img src="https://github.com/freemans32.png" width="80"><br>
         <sub><b>freemans32</b></sub>
       </a><br>
-      <sub>French (fr)</sub>
+      <sub>Français (fr)</sub>
     </td>
   </tr>
 </table>

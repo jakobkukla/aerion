@@ -1,3 +1,10 @@
+<script module lang="ts">
+  // Module-scope counter — gives each RecipientInput instance a unique ID so
+  // drag-and-drop can tell intra-field reorder from cross-field move without
+  // any shared store.
+  let nextInstanceId = 0
+</script>
+
 <script lang="ts">
   import { getContext } from 'svelte'
   import Icon from '@iconify/svelte'
@@ -13,6 +20,9 @@
   }
 
   let { recipients = $bindable([]), placeholder = 'Add recipients...', searchContactsFn }: Props = $props()
+
+  nextInstanceId += 1
+  const instanceId = nextInstanceId
 
   // Get API from context or create default
   const contextApi = getContext<ComposerApi | undefined>(COMPOSER_API_KEY)
@@ -137,10 +147,119 @@
     inputElement?.focus()
   }
 
+  // ─── Drag-and-drop: reorder within field, move between To/Cc/Bcc fields ───
+
+  const DND_MIME = 'application/x-aerion-recipient'
+
+  let draggingIndex = $state<number | null>(null)
+  let dropTargetIndex = $state<number | null>(null)
+
+  function handleChipDragStart(e: DragEvent, index: number) {
+    if (!e.dataTransfer) return
+    e.dataTransfer.setData(DND_MIME, JSON.stringify({
+      sourceId: instanceId,
+      recipient: recipients[index],
+    }))
+    e.dataTransfer.effectAllowed = 'move'
+    draggingIndex = index
+  }
+
+  function handleChipDragEnd(e: DragEvent) {
+    // Source removes its chip only if a cross-field move actually happened.
+    // Intra-field reorder clears draggingIndex inside handleDrop so this skips.
+    // dropEffect is 'none' for cancelled drops.
+    if (e.dataTransfer?.dropEffect === 'move' && draggingIndex !== null) {
+      removeRecipient(draggingIndex)
+    }
+    draggingIndex = null
+    dropTargetIndex = null
+  }
+
+  function hasDndPayload(e: DragEvent): boolean {
+    return !!e.dataTransfer?.types.includes(DND_MIME)
+  }
+
+  function handleDragEnter(e: DragEvent, targetIndex: number) {
+    if (!hasDndPayload(e)) return
+    e.preventDefault()
+    dropTargetIndex = targetIndex
+  }
+
+  function handleDragOver(e: DragEvent, targetIndex: number) {
+    if (!hasDndPayload(e)) return
+    e.preventDefault()  // required to allow drop
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
+    dropTargetIndex = targetIndex
+  }
+
+  function handleDragLeave() {
+    dropTargetIndex = null
+  }
+
+  function handleDrop(e: DragEvent, targetIndex: number) {
+    const raw = e.dataTransfer?.getData(DND_MIME)
+    if (!raw) {
+      dropTargetIndex = null
+      return
+    }
+
+    let payload: { sourceId: number; recipient: smtp.Address }
+    try {
+      payload = JSON.parse(raw)
+    } catch {
+      dropTargetIndex = null
+      return
+    }
+
+    if (payload.sourceId === instanceId) {
+      // Intra-field reorder: splice from source index to target index.
+      e.preventDefault()
+      const from = draggingIndex
+      if (from === null || from === targetIndex || from + 1 === targetIndex) {
+        // No move (dropping on self or immediately after self)
+        draggingIndex = null
+        dropTargetIndex = null
+        return
+      }
+      const next = [...recipients]
+      const [moved] = next.splice(from, 1)
+      const adjusted = from < targetIndex ? targetIndex - 1 : targetIndex
+      next.splice(adjusted, 0, moved)
+      recipients = next
+      // Clear draggingIndex so handleChipDragEnd skips removal (move already done).
+      draggingIndex = null
+      dropTargetIndex = null
+      return
+    }
+
+    // Cross-field move: append to destination via the existing addRecipient
+    // pipeline (parse, dedup, clear). Source's handleChipDragEnd will remove
+    // from source on dragend.
+    e.preventDefault()
+    const r = payload.recipient
+    const name = r?.name?.trim()
+    const address = (r?.address || '').trim()
+    if (!address) {
+      dropTargetIndex = null
+      return
+    }
+    addRecipient(name ? `${name} <${address}>` : address)
+    dropTargetIndex = null
+  }
+
   function handleBlur() {
-    // Delay hiding to allow click on suggestion
+    // Delay hiding to allow click on suggestion (mousedown-based selection
+    // runs before blur and clears inputValue, so the auto-commit below becomes
+    // a no-op for that path).
     setTimeout(() => {
       showSuggestions = false
+      // Auto-commit typed text on blur so the user doesn't have to press
+      // Tab/Enter to turn a typed address into a chip. Invalid input is left
+      // in the field for the user to fix (addRecipient is a no-op on regex
+      // miss).
+      if (inputValue.trim()) {
+        addRecipient(inputValue.trim())
+      }
     }, 200)
   }
 
@@ -172,7 +291,17 @@
   <div class="flex flex-wrap items-center gap-1">
     <!-- Recipient chips -->
     {#each recipients as recipient, index (recipient.address + ':' + index)}
-      <div class="flex items-center gap-1 px-2 py-0.5 bg-muted rounded-md text-sm">
+      <div
+        role="listitem"
+        draggable="true"
+        ondragstart={(e) => handleChipDragStart(e, index)}
+        ondragend={handleChipDragEnd}
+        ondragenter={(e) => handleDragEnter(e, index)}
+        ondragover={(e) => handleDragOver(e, index)}
+        ondragleave={handleDragLeave}
+        ondrop={(e) => handleDrop(e, index)}
+        class="flex items-center gap-1 px-2 py-0.5 bg-muted rounded-md text-sm transition-opacity cursor-grab {draggingIndex === index ? 'opacity-50' : ''} {dropTargetIndex === index ? 'border-l-2 border-primary -ml-0.5 pl-[7px]' : ''}"
+      >
         <span>
           {#if recipient.name}
             {recipient.name}
@@ -190,7 +319,7 @@
       </div>
     {/each}
 
-    <!-- Input -->
+    <!-- Input — also a drop target for "insert at end" -->
     <input
       bind:this={inputElement}
       bind:value={inputValue}
@@ -199,9 +328,13 @@
       onblur={handleBlur}
       onfocus={handleFocus}
       onpaste={handlePaste}
+      ondragenter={(e) => handleDragEnter(e, recipients.length)}
+      ondragover={(e) => handleDragOver(e, recipients.length)}
+      ondragleave={handleDragLeave}
+      ondrop={(e) => handleDrop(e, recipients.length)}
       type="email"
       {placeholder}
-      class="flex-1 min-w-[150px] bg-transparent text-sm focus:outline-none"
+      class="flex-1 min-w-[150px] bg-transparent text-sm focus:outline-none {dropTargetIndex === recipients.length ? 'border-l-2 border-primary' : ''}"
     />
   </div>
 

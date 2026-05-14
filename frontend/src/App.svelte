@@ -25,11 +25,12 @@
     focusPreviousPane,
     focusNextPane,
     isPaneFlashing,
-    isInputElement
+    isInputElement,
+    setComposerOpen
   } from '$lib/stores/keyboard.svelte'
   import { initLayout, getLayoutMode, getResponsiveView, showViewer, hideViewer, showSidebar, hideSidebar, isResponsive } from '$lib/stores/layout.svelte'
   // @ts-ignore - wailsjs path
-  import { PrepareReply, GetPendingMailto, GetDraft, MarkAsRead, MarkAsUnread, Star, Unstar, Archive, MarkAsSpam, MarkAsNotSpam, Undo, GetTermsAccepted, SetTermsAccepted, RefreshWindowConstraints, AcceptCertificate, GetStartHiddenActive, CloseWindow, QuitApp, OpenComposerWindow } from '../wailsjs/go/app/App.js'
+  import { PrepareReply, GetPendingMailto, GetDraft, MarkAsRead, MarkAsUnread, Star, Unstar, Archive, MarkAsSpam, MarkAsNotSpam, Undo, GetTermsAccepted, SetTermsAccepted, RefreshWindowConstraints, AcceptCertificate, GetStartHiddenActive, CloseWindow, QuitApp, OpenComposerWindow, GetSystemTheme, NotifyStartupComplete } from '../wailsjs/go/app/App.js'
   // @ts-ignore - wailsjs path
   import { smtp, folder, certificate } from '../wailsjs/go/models'
   // @ts-ignore - wailsjs runtime
@@ -67,6 +68,12 @@
   let composerInitialMessage = $state<smtp.ComposeMessage | null>(null)
   let composerDraftId = $state<string | null>(null)
   let composerImagesLoaded = $state(false)
+
+  // Mirror composer visibility into the keyboard store so the viewer can
+  // suppress its Delete/Backspace shortcut during the composer's mount→focus race.
+  $effect(() => {
+    setComposerOpen(showComposer)
+  })
 
   // Focus mode state — viewer (or single message) takes the whole window.
   // Always resets on conversation change, on Esc, on back-arrow, and on app reload.
@@ -287,7 +294,7 @@
 
     // Load application settings (including theme mode) and apply theme
     const storedThemeMode = await loadSettings()
-    await initTheme(storedThemeMode)
+    await initTheme(storedThemeMode, GetSystemTheme)
 
     // Load image allowlist cache for synchronous checks in EmailBody
     loadImageAllowlist()
@@ -351,6 +358,11 @@
     if (!shouldStartHidden) {
       WindowShow()
     }
+
+    // Clear the desktop-environment startup indicator. Called after WindowShow()
+    // so KDE/Plasma sees the placeholder → real window handoff cleanly (#154).
+    // Fired unconditionally so the indicator clears even when starting hidden.
+    NotifyStartupComplete()
 
     // Remove GTK max size constraints that Wails v2 sets at startup
     RefreshWindowConstraints()
@@ -1232,6 +1244,7 @@
         onUnifiedFolderSelect={handleUnifiedFolderSelect}
         onCompose={handleCompose}
         onUnifiedInboxSelect={handleUnifiedInboxSelect}
+        onMessagesMoved={() => messageListRef?.handleActionComplete(false)}
         selectedAccountId={selectedAccountId}
         selectedFolderId={selectedFolderId}
         selectionSource={selectionSource}

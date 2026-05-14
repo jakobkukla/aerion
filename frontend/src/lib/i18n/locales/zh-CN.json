@@ -279,7 +279,8 @@
     "markAllAsRead": "全部标记为已读",
     "markAllAsUnread": "全部标记为未读",
     "noFoldersAvailable": "没有可用的文件夹",
-    "searchFolders": "搜索文件夹..."
+    "searchFolders": "搜索文件夹...",
+    "account": "账号"
   },
   "toast": {
     "archived": "已归档",

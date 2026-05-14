@@ -1555,20 +1555,29 @@
     scheduleDraftSave()
   }
 
-  // Drag and drop handlers
+  // Drag and drop handlers. Ignore recipient-chip drags so the composer doesn't
+  // claim them as file drops (which would make the chip's dragend think a
+  // successful move happened and remove it from the source field).
+  function isRecipientChipDrag(e: DragEvent): boolean {
+    return !!e.dataTransfer?.types.includes('application/x-aerion-recipient')
+  }
+
   function handleDragOver(e: DragEvent) {
+    if (isRecipientChipDrag(e)) return
     e.preventDefault()
     e.stopPropagation()
     isDraggingOver = true
   }
 
   function handleDragLeave(e: DragEvent) {
+    if (isRecipientChipDrag(e)) return
     e.preventDefault()
     e.stopPropagation()
     isDraggingOver = false
   }
 
   async function handleDrop(e: DragEvent) {
+    if (isRecipientChipDrag(e)) return
     e.stopPropagation()
     isDraggingOver = false
 

@@ -25,6 +25,7 @@
     onSync?: () => void
     collapsedFolders?: Record<string, boolean>
     onToggleFolderCollapse?: (folderId: string) => void
+    onMessagesMoved?: () => void
   }
 
   let {
@@ -46,6 +47,7 @@
     onSync,
     collapsedFolders = {},
     onToggleFolderCollapse,
+    onMessagesMoved,
   }: Props = $props()
 
   let showMenu = $state(false)
@@ -201,9 +203,11 @@
         {#each folders as tree (tree.folder?.id ?? 'unknown')}
           <FolderTreeItem
             {tree}
+            accountId={acc.id}
             {selectedFolderId}
             {selectionSource}
             {collapsedFolders}
+            {onMessagesMoved}
             onFolderSelect={(f) => selectFolder(f)}
             onToggleCollapse={(folderId) => onToggleFolderCollapse?.(folderId)}
           />

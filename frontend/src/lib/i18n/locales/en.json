@@ -280,7 +280,8 @@
     "markAllAsRead": "Mark All as Read",
     "markAllAsUnread": "Mark All as Unread",
     "noFoldersAvailable": "No folders available",
-    "searchFolders": "Search folders..."
+    "searchFolders": "Search folders...",
+    "account": "Account"
   },
   "toast": {
     "archived": "Archived",

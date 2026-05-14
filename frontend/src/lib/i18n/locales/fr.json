@@ -280,7 +280,8 @@
     "markAllAsRead": "Tout marquer comme lu",
     "markAllAsUnread": "Tout marquer comme non lu",
     "noFoldersAvailable": "Aucun dossier disponible",
-    "searchFolders": "Rechercher des dossiers..."
+    "searchFolders": "Rechercher des dossiers...",
+    "account": "Compte"
   },
   "toast": {
     "archived": "Archivé",

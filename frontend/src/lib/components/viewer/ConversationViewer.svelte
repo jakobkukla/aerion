@@ -12,7 +12,7 @@
   import AttachmentList from './AttachmentList.svelte'
   import EmailBody from './EmailBody.svelte'
   import { toasts } from '$lib/stores/toast'
-  import { setFocusedPane } from '$lib/stores/keyboard.svelte'
+  import { setFocusedPane, isInputElement, isComposerOpen } from '$lib/stores/keyboard.svelte'
   import { ConfirmDialog } from '$lib/components/ui/confirm-dialog'
   import MessageContextMenu from '$lib/components/common/MessageContextMenu.svelte'
   import { _ } from '$lib/i18n'
@@ -308,8 +308,12 @@
         return
       }
 
-      // Handle delete for focused message
+      // Handle delete for focused message. Guard against the composer-mount
+      // focus race (a keystroke fired between Reply click and TipTap focus)
+      // and against any input/contenteditable having focus.
       if (focusedMessageId && (e.key === 'Delete' || e.key === 'Backspace')) {
+        if (isComposerOpen()) return
+        if (isInputElement(e.target) || isInputElement(document.activeElement)) return
         e.preventDefault()
         handleDeleteFocusedMessage()
       }

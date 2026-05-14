@@ -110,6 +110,7 @@
     onUnifiedFolderSelect?: (accountId: string, folderId: string, folderPath: string, folderName: string, folderType: string) => void
     onUnifiedInboxSelect?: () => void
     onCompose?: () => void
+    onMessagesMoved?: () => void
     selectedAccountId?: string | null
     selectedFolderId?: string | null
     selectionSource?: 'unified' | 'account' | null
@@ -124,6 +125,7 @@
     onUnifiedFolderSelect,
     onUnifiedInboxSelect,
     onCompose,
+    onMessagesMoved,
     selectedAccountId = null,
     selectedFolderId = null,
     selectionSource = null,
@@ -574,6 +576,7 @@
           syncProgress={accountStore.getSyncProgress(accWithFolders.account.id)}
           syncError={accountStore.getSyncError(accWithFolders.account.id)}
           {collapsedFolders}
+          {onMessagesMoved}
           onFolderSelect={handleFolderSelect}
           onToggleExpanded={() => toggleAccountExpanded(accWithFolders.account.id)}
           onToggleFolderCollapse={toggleFolderCollapsed}

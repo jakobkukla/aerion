@@ -234,6 +234,19 @@
   const contextMenuMessageIds = $derived(useMultiSelect ? selectedMessageIds : ownMessageIds)
   const contextMenuIsStarred = $derived(useMultiSelect ? selectedIsStarred : ownIsStarred)
   const contextMenuIsRead = $derived(useMultiSelect ? selectedIsRead : ownIsRead)
+
+  // Drag start handler: stash messageIds + sourceAccountId in dataTransfer so
+  // the folder drop target can move them via MoveToFolder(). If this row is
+  // part of the multi-select, drag the whole checked set; otherwise drag just
+  // this row's messages (matches the context-menu selection rule).
+  function handleDragStart(e: DragEvent) {
+    if (!e.dataTransfer) return
+    const messageIds = checked ? selectedMessageIds : ownMessageIds
+    if (messageIds.length === 0) return
+    const payload = JSON.stringify({ messageIds, sourceAccountId: accountId })
+    e.dataTransfer.setData('application/x-aerion-messages', payload)
+    e.dataTransfer.effectAllowed = 'move'
+  }
 </script>
 
 <MessageContextMenu
@@ -249,11 +262,13 @@
 >
   <div
     data-conversation-row
+    draggable="true"
     class="group w-full flex items-start {densityClasses.row[density]} text-left border-b border-border transition-colors duration-300 cursor-pointer outline-none {selected
       ? 'bg-primary/20'
       : 'hover:bg-muted/50'} {getAccentBarUnread() && hasUnread ? 'border-l-2 border-l-primary' : ''}"
     onclick={(e) => onSelect(e)}
     onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect() }}}
+    ondragstart={handleDragStart}
     role="button"
     tabindex="0"
   >

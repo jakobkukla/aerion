@@ -133,3 +133,16 @@ export function createKeyboardState() {
     isInputElement,
   }
 }
+
+// Composer open state — used to suppress viewer shortcuts (Delete/Backspace)
+// during the composer's mount→focus race, where a keystroke can fire before
+// TipTap claims focus and would otherwise trash the focused message.
+let composerOpen = $state(false)
+
+export function setComposerOpen(open: boolean): void {
+  composerOpen = open
+}
+
+export function isComposerOpen(): boolean {
+  return composerOpen
+}
