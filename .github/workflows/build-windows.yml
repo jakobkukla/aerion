@@ -1,0 +1,67 @@
+name: Build Windows
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows
+            arch: amd64
+    runs-on: ${{ matrix.os }}
+    env:
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      MICROSOFT_CLIENT_ID: ${{ secrets.MICROSOFT_CLIENT_ID }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.24'
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Install Wails CLI
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Install Windows dependencies (NSIS)
+        shell: pwsh
+        run: |
+          choco install nsis -y --no-progress
+          # Wails detects NSIS via exec.LookPath("makensis") — make sure subsequent steps see it.
+          Add-Content -Path $env:GITHUB_PATH -Value "C:\Program Files (x86)\NSIS"
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Build (Windows)
+        shell: pwsh
+        env:
+          GOARCH: ${{ matrix.arch }}
+        run: |
+          make build-windows-installer
+          Move-Item build/bin/aerion.exe build/bin/Aerion-windows-${{ matrix.arch }}.exe
+          Move-Item build/bin/aerion-${{ matrix.arch }}-installer.exe build/bin/Aerion-windows-setup-${{ matrix.arch }}.exe
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: aerion-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.variant && format('-{0}', matrix.variant) || '' }}
+          path: |
+            build/bin/aerion-*
+            build/bin/Aerion-*
+            build/bin/flathub-build-env-*
+            aerion-*.tar.gz
+          retention-days: 1
