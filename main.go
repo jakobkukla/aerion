@@ -119,7 +119,7 @@ func runMainMode(mailtoData *app.MailtoData, rawMailtoArg string) {
 	err = wails.Run(&options.App{
 		Title:                    "Aerion",
 		Width:                    1280,
-		Height:                   800,
+		Height:                   600,
 		MinWidth:                 360,
 		MinHeight:                400,
 		Frameless:                !nativeTitleBar,
